@@ -114,16 +114,18 @@ class GuiceViewProvider implements ViewProvider, SessionDestroyListener, Session
 
             checkArgument(viewClass != null, "no view for name %s registered", viewName);
 
-            try {
-                guiceVaadin.getViewScoper().startInitialization();
+            synchronized (guiceVaadin) {
+                try {
+                    guiceVaadin.getViewScoper().startInitialization();
 
-                view = guiceVaadin.assemble(viewClass);
-                views.put(viewName, view);
+                    view = guiceVaadin.assemble(viewClass);
+                    views.put(viewName, view);
 
-                guiceVaadin.getViewScoper().endInitialization(view);
-            } catch (RuntimeException e) {
-                guiceVaadin.getViewScoper().rollbackInitialization();
-                throw e;
+                    guiceVaadin.getViewScoper().endInitialization(view);
+                } catch (RuntimeException e) {
+                    guiceVaadin.getViewScoper().rollbackInitialization();
+                    throw e;
+                }
             }
         }
 
