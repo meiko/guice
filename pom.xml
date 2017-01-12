@@ -20,8 +20,8 @@
         <guice.version>4.1.0</guice.version>
         <vaadin.version>[7.6.0,8.0.0-SNAPSHOT)</vaadin.version>
         <reflections.version>0.9.10</reflections.version>
-        <javassist.version>3.20.0-GA</javassist.version>
-        <mockito-core.version>1.9.5</mockito-core.version>
+        <javassist.version>3.22.0-CR1</javassist.version>
+        <mockito-core.version>2.6.0</mockito-core.version>
         <maven-surefire-plugin.version>2.10</maven-surefire-plugin.version>
         <maven-jar-plugin.version>2.3.1</maven-jar-plugin.version>
         <javax.servlet-api.version>[3.0.0,)</javax.servlet-api.version>
