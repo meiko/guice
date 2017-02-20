@@ -2,17 +2,13 @@ package com.vaadin.guice.server;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
-
 import com.vaadin.guice.annotation.GuiceView;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewProvider;
-import com.vaadin.server.ServiceException;
-import com.vaadin.server.SessionDestroyEvent;
-import com.vaadin.server.SessionDestroyListener;
-import com.vaadin.server.SessionInitEvent;
-import com.vaadin.server.SessionInitListener;
-import com.vaadin.server.VaadinSession;
+import com.vaadin.server.*;
+import com.vaadin.ui.UI;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Set;
@@ -40,7 +36,7 @@ class GuiceViewProvider implements ViewProvider, SessionDestroyListener, Session
 
     private final Map<String, Class<? extends View>> viewNamesToViewClassesMap;
     private final GuiceVaadin guiceVaadin;
-    private final Map<VaadinSession, Map<String, View>> viewsBySessionMap;
+    private final Map<VaadinSession, Map<UI, Map<String, View>>> viewsBySessionMap;
     private final NavigableSet<String> viewNames;
 
     GuiceViewProvider(Set<Class<? extends View>> viewClasses, GuiceVaadin guiceVaadin) {
@@ -51,7 +47,7 @@ class GuiceViewProvider implements ViewProvider, SessionDestroyListener, Session
         // This is useful for quickly looking up views by name
         viewNames = ImmutableSortedSet.copyOf(viewNamesToViewClassesMap.keySet());
 
-        viewsBySessionMap = new ConcurrentHashMap<VaadinSession, Map<String, View>>();
+        viewsBySessionMap = new ConcurrentHashMap<VaadinSession, Map<UI, Map<String, View>>>();
     }
 
     private Map<String, Class<? extends View>> scanForViews(Set<Class<? extends View>> viewClasses) {
@@ -105,7 +101,14 @@ class GuiceViewProvider implements ViewProvider, SessionDestroyListener, Session
 
         VaadinSession session = VaadinSession.getCurrent();
 
-        Map<String, View> views = viewsBySessionMap.get(session);
+        Map<UI, Map<String, View>> viewsByUI = viewsBySessionMap.get(session);
+
+        Map<String, View> views = viewsByUI.get(guiceVaadin.getCurrentUIProvider().get());
+
+        if (views == null) {
+            views = new HashMap<String, View>(viewNames.size());
+            viewsByUI.put(guiceVaadin.getCurrentUIProvider().get(), views);
+        }
 
         View view = views.get(viewName);
 
@@ -139,6 +142,6 @@ class GuiceViewProvider implements ViewProvider, SessionDestroyListener, Session
 
     @Override
     public void sessionInit(SessionInitEvent event) throws ServiceException {
-        viewsBySessionMap.put(event.getSession(), new ConcurrentHashMap<String, View>(viewNamesToViewClassesMap.size()));
+        viewsBySessionMap.put(event.getSession(), new ConcurrentHashMap<UI, Map<String, View>>());
     }
 }
