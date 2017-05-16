@@ -48,6 +48,12 @@ public class GuiceVaadinServlet extends VaadinServlet {
         guiceVaadin.vaadinInitialized();
     }
 
+    /**
+     * can be made public in subclasses to expose the injector and get access to the guice-context
+     * from another servlet for example.
+     *
+     * @return the {@link Injector that holds the guice-context}
+     */
     protected Injector getInjector() {
         return guiceVaadin.getInjector();
     }
