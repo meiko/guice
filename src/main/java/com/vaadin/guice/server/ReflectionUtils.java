@@ -6,11 +6,13 @@ import com.google.inject.Module;
 import com.google.inject.Provider;
 
 import com.vaadin.guice.annotation.GuiceUI;
+import com.vaadin.guice.annotation.GuiceVaadinServiceInitListener;
 import com.vaadin.guice.annotation.GuiceView;
 import com.vaadin.guice.annotation.GuiceViewChangeListener;
 import com.vaadin.guice.annotation.UIModule;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.server.VaadinServiceInitListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.UI;
 
@@ -27,6 +29,7 @@ import java.util.Set;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static java.util.Collections.EMPTY_SET;
 
 final class ReflectionUtils {
 
@@ -180,7 +183,30 @@ final class ReflectionUtils {
             }
         }
 
-        return Optional.<Class<? extends View>>fromNullable(errorView);
+        return Optional.fromNullable(errorView);
+    }
+
+    @SuppressWarnings("unchecked")
+    static Set<Class<? extends VaadinServiceInitListener>> getVaadinServiceInitListeners(Reflections reflections) {
+        final Set<Class<?>> classes = reflections.getTypesAnnotatedWith(GuiceVaadinServiceInitListener.class);
+
+        if (classes == null || classes.isEmpty()) {
+            return EMPTY_SET;
+        }
+
+        Set<Class<? extends VaadinServiceInitListener>> vaadinServiceInitListenerClasses = new HashSet<>(classes.size());
+
+        for (Class<?> aClass : classes) {
+            checkState(
+                    VaadinServiceInitListener.class.isAssignableFrom(aClass),
+                    "%s is annotated with @GuiceVaadinServiceInitListener but does not implement VaadinServiceInitListener",
+                    aClass
+            );
+
+            vaadinServiceInitListenerClasses.add((Class<? extends VaadinServiceInitListener>) aClass);
+        }
+
+        return vaadinServiceInitListenerClasses;
     }
 }
 

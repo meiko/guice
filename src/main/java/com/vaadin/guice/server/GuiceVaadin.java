@@ -9,10 +9,12 @@ import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.DefaultUIProvider;
 import com.vaadin.server.ServiceException;
+import com.vaadin.server.ServiceInitEvent;
 import com.vaadin.server.SessionInitEvent;
 import com.vaadin.server.SessionInitListener;
 import com.vaadin.server.UIProvider;
 import com.vaadin.server.VaadinService;
+import com.vaadin.server.VaadinServiceInitListener;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.UI;
 
@@ -30,6 +32,7 @@ import static com.vaadin.guice.server.ReflectionUtils.getDynamicModules;
 import static com.vaadin.guice.server.ReflectionUtils.getGuiceUIClasses;
 import static com.vaadin.guice.server.ReflectionUtils.getGuiceViewClasses;
 import static com.vaadin.guice.server.ReflectionUtils.getStaticModules;
+import static com.vaadin.guice.server.ReflectionUtils.getVaadinServiceInitListeners;
 import static com.vaadin.guice.server.ReflectionUtils.getViewChangeListenerClasses;
 
 /**
@@ -49,6 +52,7 @@ class GuiceVaadin implements SessionInitListener {
     private final Injector injector;
     private final VaadinSessionScoper vaadinSessionScoper;
     private final ViewScoper viewScoper;
+    private Set<Class<? extends VaadinServiceInitListener>> vaadinServiceInitListeners;
 
     //used for non-testing
     GuiceVaadin(Reflections reflections, Class<? extends Module>[] modules) throws IllegalAccessException, InstantiationException, InvocationTargetException {
@@ -105,6 +109,7 @@ class GuiceVaadin implements SessionInitListener {
 
         this.uis = getGuiceUIClasses(reflections);
         this.viewChangeListeners = getViewChangeListenerClasses(reflections, uis);
+        this.vaadinServiceInitListeners = getVaadinServiceInitListeners(reflections);
         this.vaadinSessionProvider = vaadinSessionProvider;
         this.currentUIProvider = currentUIProvider;
         this.vaadinServiceProvider = vaadinServiceProvider;
@@ -160,6 +165,13 @@ class GuiceVaadin implements SessionInitListener {
         service.addSessionDestroyListener(viewProvider);
         service.addSessionInitListener(viewProvider);
         service.addSessionDestroyListener(vaadinSessionScoper);
+
+        ServiceInitEvent event = new ServiceInitEvent(service);
+
+        for (Class<? extends VaadinServiceInitListener> initListenerClass : vaadinServiceInitListeners) {
+            final VaadinServiceInitListener vaadinServiceInitListener = assemble(initListenerClass);
+            vaadinServiceInitListener.serviceInit(event);
+        }
     }
 
     GuiceViewProvider getViewProvider() {

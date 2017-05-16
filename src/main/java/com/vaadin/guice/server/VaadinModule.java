@@ -43,5 +43,7 @@ class VaadinModule extends AbstractModule {
         for (Class<? extends View> guiceViewClass : guiceVaadin.getViews()) {
             viewMultibinder.addBinding().to(guiceViewClass);
         }
+
+
     }
 }
