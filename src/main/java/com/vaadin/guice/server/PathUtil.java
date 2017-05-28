@@ -12,17 +12,22 @@ final class PathUtil {
     }
 
     static String preparePath(String path) {
-        if (path.length() > 0 && !path.startsWith("/")) {
-            path = "/".concat(path);
-        } else {
-            // remove terminal slash from mapping
-            path = path.replaceAll("/$", "");
+        if (isNullOrEmpty(path)) {
+            return "";
+        }
+
+        if (!path.startsWith("/")) {
+            path = "/" + path;
+        }
+
+        if (path.endsWith("/")) {
+            path = path.substring(0, path.length() - 1);
         }
 
         return path;
     }
 
-    public static String removeParametersFromViewName(String viewNameAndParameters) {
+    static String removeParametersFromViewName(String viewNameAndParameters) {
         if (isNullOrEmpty(viewNameAndParameters)) {
             return "";
         }
@@ -37,19 +42,22 @@ final class PathUtil {
     }
 
     static String extractUIPathFromRequest(VaadinRequest request) {
-        String pathInfo = request.getPathInfo();
-        if (pathInfo != null && pathInfo.length() > 1) {
-            String path = pathInfo;
-            final int indexOfBang = path.indexOf('!');
-            if (indexOfBang > -1) {
-                path = path.substring(0, indexOfBang);
-            }
+        String path = request.getPathInfo();
 
-            if (path.endsWith("/")) {
-                path = path.substring(0, path.length() - 1);
-            }
-            return path;
+        if (isNullOrEmpty(path)) {
+            return "";
         }
-        return "";
+
+        final int indexOfBang = path.indexOf('!');
+
+        if (indexOfBang > -1) {
+            path = path.substring(0, indexOfBang);
+        }
+
+        if (path.endsWith("/")) {
+            path = path.substring(0, path.length() - 1);
+        }
+
+        return path;
     }
 }
