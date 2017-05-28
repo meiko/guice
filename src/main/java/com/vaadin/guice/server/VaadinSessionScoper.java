@@ -21,34 +21,25 @@ class VaadinSessionScoper implements Scope, SessionDestroyListener {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> Provider<T> scope(final Key<T> key, final Provider<T> unscoped) {
 
-        return new Provider<T>() {
-            @Override
-            @SuppressWarnings("unchecked")
-            public T get() {
-                Map<Key<?>, Object> scopedObjects = getOrCreateScopedObjectsMap();
+        return () -> {
+            Map<Key<?>, Object> scopedObjects = getOrCreateScopedObjectsMap();
 
-                T t = (T) scopedObjects.get(key);
+            T t = (T) scopedObjects.get(key);
 
-                if (t == null) {
-                    t = unscoped.get();
-                    scopedObjects.put(key, t);
-                }
-
-                return t;
+            if (t == null) {
+                t = unscoped.get();
+                scopedObjects.put(key, t);
             }
+
+            return t;
         };
     }
 
     private Map<Key<?>, Object> getOrCreateScopedObjectsMap() {
-        Map<Key<?>, Object> scopedObjects = scopedObjectsBySession.get(vaadinSessionProvider.get());
-
-        if (scopedObjects == null) {
-            scopedObjects = KeyObjectMapPool.leaseMap();
-            scopedObjectsBySession.put(vaadinSessionProvider.get(), scopedObjects);
-        }
-        return scopedObjects;
+        return scopedObjectsBySession.computeIfAbsent(vaadinSessionProvider.get(), k -> KeyObjectMapPool.leaseMap());
     }
 
     @Override

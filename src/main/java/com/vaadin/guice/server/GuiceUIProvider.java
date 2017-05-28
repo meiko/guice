@@ -38,8 +38,8 @@ class GuiceUIProvider extends UIProvider {
 
         logger.info("Checking the application context for Vaadin UIs");
 
-        final HashMap<String, Class<? extends UI>> pathToUIMapCollector = new HashMap<String, Class<? extends UI>>();
-        final Map<String, Class<? extends UI>> wildcardPathToUIMapCollector = new HashMap<String, Class<? extends UI>>();
+        final HashMap<String, Class<? extends UI>> pathToUIMapCollector = new HashMap<>();
+        final Map<String, Class<? extends UI>> wildcardPathToUIMapCollector = new HashMap<>();
 
         for (Class<? extends UI> uiClass : guiceVaadin.getUis()) {
 

@@ -57,34 +57,16 @@ class GuiceVaadin implements SessionInitListener {
     //used for non-testing
     GuiceVaadin(Reflections reflections, Class<? extends Module>[] modules) throws IllegalAccessException, InstantiationException, InvocationTargetException {
         this(
-                new Provider<VaadinSession>() {
-                    @Override
-                    public VaadinSession get() {
-                        return VaadinSession.getCurrent();
-                    }
-                },
-                new Provider<UI>() {
-                    @Override
-                    public UI get() {
-                        return UI.getCurrent();
-                    }
-                },
-                new Provider<View>() {
-                    @Override
-                    public View get() {
-                        final Navigator navigator = UI.getCurrent().getNavigator();
+                VaadinSession::getCurrent,
+                UI::getCurrent,
+                () -> {
+                    final Navigator navigator = UI.getCurrent().getNavigator();
 
-                        checkState(navigator != null);
+                    checkState(navigator != null);
 
-                        return navigator.getCurrentView();
-                    }
+                    return navigator.getCurrentView();
                 },
-                new Provider<VaadinService>() {
-                    @Override
-                    public VaadinService get() {
-                        return VaadinService.getCurrent();
-                    }
-                },
+                VaadinService::getCurrent,
                 reflections,
                 modules
         );

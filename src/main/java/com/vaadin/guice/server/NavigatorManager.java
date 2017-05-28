@@ -1,7 +1,5 @@
 package com.vaadin.guice.server;
 
-import com.google.common.base.Optional;
-
 import com.vaadin.guice.annotation.GuiceUI;
 import com.vaadin.guice.annotation.UIScope;
 import com.vaadin.navigator.View;
@@ -12,6 +10,8 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.ComponentContainer;
 import com.vaadin.ui.SingleComponentContainer;
 import com.vaadin.ui.UI;
+
+import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.vaadin.guice.server.PathUtil.removeParametersFromViewName;

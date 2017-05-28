@@ -1,9 +1,6 @@
 package com.vaadin.guice.server;
 
-import com.google.common.base.Optional;
-import com.google.inject.Injector;
 import com.google.inject.Module;
-import com.google.inject.Provider;
 
 import com.vaadin.guice.annotation.GuiceUI;
 import com.vaadin.guice.annotation.GuiceVaadinServiceInitListener;
@@ -24,6 +21,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -45,15 +43,10 @@ final class ReflectionUtils {
 
         if (module instanceof NeedsInjector) {
             ((NeedsInjector) module).setInjectorProvider(
-                    new Provider<Injector>() {
-                        @Override
-                        public Injector get() {
-                            return checkNotNull(
-                                    guiceVaadin.getInjector(),
-                                    "guice injector is not set up yet"
-                            );
-                        }
-                    }
+                    () -> checkNotNull(
+                            guiceVaadin.getInjector(),
+                            "guice injector is not set up yet"
+                    )
             );
         }
 
@@ -61,7 +54,7 @@ final class ReflectionUtils {
     }
 
     static List<Module> getStaticModules(Class<? extends Module>[] modules, Reflections reflections, GuiceVaadin guiceVaadin) throws IllegalAccessException, InstantiationException, InvocationTargetException {
-        List<Module> hardWiredModules = new ArrayList<Module>(modules.length);
+        List<Module> hardWiredModules = new ArrayList<>(modules.length);
 
         for (Class<? extends Module> moduleClass : modules) {
             hardWiredModules.add(create(moduleClass, reflections, guiceVaadin));
@@ -71,7 +64,7 @@ final class ReflectionUtils {
 
     @SuppressWarnings("unchecked")
     static Set<Module> getDynamicModules(Reflections reflections, GuiceVaadin guiceVaadin) throws IllegalAccessException, InstantiationException, InvocationTargetException {
-        Set<Module> dynamicallyLoadedModules = new HashSet<Module>();
+        Set<Module> dynamicallyLoadedModules = new HashSet<>();
 
         for (Class<?> dynamicallyLoadedModuleClass : reflections.getTypesAnnotatedWith(UIModule.class, true)) {
             checkArgument(
@@ -87,7 +80,7 @@ final class ReflectionUtils {
 
     @SuppressWarnings("unchecked")
     static Set<Class<? extends View>> getGuiceViewClasses(Reflections reflections) {
-        Set<Class<? extends View>> views = new HashSet<Class<? extends View>>();
+        Set<Class<? extends View>> views = new HashSet<>();
 
         for (Class<?> viewClass : reflections.getTypesAnnotatedWith(GuiceView.class)) {
             checkArgument(
@@ -103,7 +96,7 @@ final class ReflectionUtils {
 
     @SuppressWarnings("unchecked")
     static Set<Class<? extends UI>> getGuiceUIClasses(Reflections reflections) {
-        Set<Class<? extends UI>> uis = new HashSet<Class<? extends UI>>();
+        Set<Class<? extends UI>> uis = new HashSet<>();
 
         for (Class<?> uiClass : reflections.getTypesAnnotatedWith(GuiceUI.class)) {
             checkArgument(
@@ -120,12 +113,12 @@ final class ReflectionUtils {
     @SuppressWarnings("unchecked")
     static Map<Class<? extends UI>, Set<Class<? extends ViewChangeListener>>> getViewChangeListenerClasses(Reflections reflections, Set<Class<? extends UI>> uiClasses) {
 
-        Map<Class<? extends UI>, Set<Class<? extends ViewChangeListener>>> viewChangeListenersByUI = new HashMap<Class<? extends UI>, Set<Class<? extends ViewChangeListener>>>(uiClasses.size());
+        Map<Class<? extends UI>, Set<Class<? extends ViewChangeListener>>> viewChangeListenersByUI = new HashMap<>(uiClasses.size());
 
         final Set<Class<?>> allViewChangeListenerClasses = reflections.getTypesAnnotatedWith(GuiceViewChangeListener.class, true);
 
         for (Class<? extends UI> uiClass : uiClasses) {
-            viewChangeListenersByUI.put(uiClass, new HashSet<Class<? extends ViewChangeListener>>());
+            viewChangeListenersByUI.put(uiClass, new HashSet<>());
         }
 
         for (Class<?> viewChangeListenerClass : allViewChangeListenerClasses) {
@@ -183,7 +176,7 @@ final class ReflectionUtils {
             }
         }
 
-        return Optional.fromNullable(errorView);
+        return Optional.ofNullable(errorView);
     }
 
     @SuppressWarnings("unchecked")
