@@ -54,6 +54,7 @@ public class GuiceVaadinServlet extends VaadinServlet {
      *
      * @return the {@link Injector that holds the guice-context}
      */
+    @SuppressWarnings("unused")
     protected Injector getInjector() {
         return guiceVaadin.getInjector();
     }
