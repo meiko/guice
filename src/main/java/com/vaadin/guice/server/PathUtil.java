@@ -6,8 +6,6 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 
 final class PathUtil {
 
-    private static final char DELIMITER = '/';
-
     private PathUtil() {
     }
 
@@ -32,13 +30,13 @@ final class PathUtil {
             return "";
         }
 
-        final int indexOfDelimiter = viewNameAndParameters.indexOf(DELIMITER);
+        final int indexOfDelimiter = viewNameAndParameters.indexOf('/');
 
-        if (indexOfDelimiter == -1) {
-            return viewNameAndParameters;
+        if (indexOfDelimiter != -1) {
+            viewNameAndParameters = viewNameAndParameters.substring(0, indexOfDelimiter);
         }
 
-        return viewNameAndParameters.substring(0, indexOfDelimiter);
+        return viewNameAndParameters;
     }
 
     static String extractUIPathFromRequest(VaadinRequest request) {
@@ -52,9 +50,7 @@ final class PathUtil {
 
         if (indexOfBang > -1) {
             path = path.substring(0, indexOfBang);
-        }
-
-        if (path.endsWith("/")) {
+        } else if (path.endsWith("/")) {
             path = path.substring(0, path.length() - 1);
         }
 
