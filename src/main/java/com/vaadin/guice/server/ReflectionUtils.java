@@ -1,13 +1,12 @@
 package com.vaadin.guice.server;
 
 import com.google.common.base.Optional;
-import com.google.inject.Injector;
 import com.google.inject.Module;
-import com.google.inject.Provider;
 
 import com.vaadin.guice.annotation.GuiceUI;
 import com.vaadin.guice.annotation.GuiceView;
 import com.vaadin.guice.annotation.GuiceViewChangeListener;
+import com.vaadin.guice.annotation.ModuleToCreate;
 import com.vaadin.guice.annotation.UIModule;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
@@ -16,8 +15,11 @@ import com.vaadin.ui.UI;
 
 import org.reflections.Reflections;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -33,35 +35,81 @@ final class ReflectionUtils {
     private ReflectionUtils() {
     }
 
-    private static Module create(Class<? extends Module> type, Reflections reflections, final GuiceVaadin guiceVaadin) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    static Collection<Module> getModulesFromAnnotations(Annotation[] annotations, Reflections reflections, GuiceVaadin guiceVaadin)
+            throws IllegalAccessException, InstantiationException, InvocationTargetException {
+        Collection<Module> modules = new ArrayList<Module>();
+
+        for (Annotation annotation : annotations) {
+            final Module module = createIfModuleToCreate(annotation);
+
+            if (module != null) {
+                postProcess(reflections, guiceVaadin, module);
+                modules.add(module);
+            }
+        }
+
+        return modules;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Module createIfModuleToCreate(Annotation annotation) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+
+        checkNotNull(annotation);
+
+        final Class<? extends Annotation> annotationClass = annotation.getClass();
+
+        if (!annotationClass.isAnnotationPresent(ModuleToCreate.class)) {
+            return null;
+        }
+
+        final ModuleToCreate moduleToCreate = annotationClass.getAnnotation(ModuleToCreate.class);
+
+        try {
+            final Class<? extends Module> moduleClass = moduleToCreate.value();
+
+            final Constructor<? extends Module> constructorWithAnnotation = moduleClass.getConstructor(annotationClass);
+
+            if (constructorWithAnnotation != null) {
+                constructorWithAnnotation.setAccessible(true);
+                return constructorWithAnnotation.newInstance(annotation);
+            }
+
+            final Constructor<? extends Module> defaultConstructor = moduleClass.getConstructor();
+
+            if (defaultConstructor != null) {
+                defaultConstructor.setAccessible(true);
+                return defaultConstructor.newInstance();
+            }
+
+            throw new IllegalArgumentException("no suitable constructor found for " + moduleClass);
+        } catch (NoSuchMethodException e) {
+            return null;
+        }
+    }
+
+    private static Module createIfModuleToCreate(Class<? extends Module> type, Reflections reflections, final GuiceVaadin guiceVaadin) throws IllegalAccessException, InvocationTargetException, InstantiationException {
         final Module module = type.newInstance();
 
+        postProcess(reflections, guiceVaadin, module);
+
+        return module;
+    }
+
+    private static void postProcess(Reflections reflections, GuiceVaadin guiceVaadin, Module module) {
         if (module instanceof NeedsReflections) {
             ((NeedsReflections) module).setReflections(reflections);
         }
 
         if (module instanceof NeedsInjector) {
-            ((NeedsInjector) module).setInjectorProvider(
-                    new Provider<Injector>() {
-                        @Override
-                        public Injector get() {
-                            return checkNotNull(
-                                    guiceVaadin.getInjector(),
-                                    "guice injector is not set up yet"
-                            );
-                        }
-                    }
-            );
+            ((NeedsInjector) module).setInjectorProvider(guiceVaadin);
         }
-
-        return module;
     }
 
     static List<Module> getStaticModules(Class<? extends Module>[] modules, Reflections reflections, GuiceVaadin guiceVaadin) throws IllegalAccessException, InstantiationException, InvocationTargetException {
         List<Module> hardWiredModules = new ArrayList<Module>(modules.length);
 
         for (Class<? extends Module> moduleClass : modules) {
-            hardWiredModules.add(create(moduleClass, reflections, guiceVaadin));
+            hardWiredModules.add(createIfModuleToCreate(moduleClass, reflections, guiceVaadin));
         }
         return hardWiredModules;
     }
@@ -77,7 +125,7 @@ final class ReflectionUtils {
                     dynamicallyLoadedModuleClass
             );
 
-            dynamicallyLoadedModules.add(create((Class<? extends Module>) dynamicallyLoadedModuleClass, reflections, guiceVaadin));
+            dynamicallyLoadedModules.add(createIfModuleToCreate((Class<? extends Module>) dynamicallyLoadedModuleClass, reflections, guiceVaadin));
         }
         return dynamicallyLoadedModules;
     }

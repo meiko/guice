@@ -37,7 +37,7 @@ public class GuiceVaadinServlet extends VaadinServlet {
         Reflections reflections = new Reflections((Object[]) annotation.basePackages());
 
         try {
-            this.guiceVaadin = new GuiceVaadin(reflections, annotation.modules());
+            this.guiceVaadin = new GuiceVaadin(reflections, annotation.modules(), getClass().getAnnotations());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

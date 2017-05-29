@@ -18,24 +18,30 @@ import com.vaadin.ui.UI;
 
 import org.reflections.Reflections;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.Iterables.concat;
 import static com.google.inject.Guice.createInjector;
 import static com.google.inject.util.Modules.combine;
 import static com.google.inject.util.Modules.override;
 import static com.vaadin.guice.server.ReflectionUtils.getDynamicModules;
 import static com.vaadin.guice.server.ReflectionUtils.getGuiceUIClasses;
 import static com.vaadin.guice.server.ReflectionUtils.getGuiceViewClasses;
+import static com.vaadin.guice.server.ReflectionUtils.getModulesFromAnnotations;
 import static com.vaadin.guice.server.ReflectionUtils.getStaticModules;
 import static com.vaadin.guice.server.ReflectionUtils.getViewChangeListenerClasses;
 
 /**
  * this class holds most of the logic that glues guice and vaadin together
  */
-class GuiceVaadin implements SessionInitListener {
+class GuiceVaadin implements SessionInitListener, Provider<Injector> {
 
     private final GuiceViewProvider viewProvider;
     private final GuiceUIProvider guiceUIProvider;
@@ -51,7 +57,7 @@ class GuiceVaadin implements SessionInitListener {
     private final ViewScoper viewScoper;
 
     //used for non-testing
-    GuiceVaadin(Reflections reflections, Class<? extends Module>[] modules) throws IllegalAccessException, InstantiationException, InvocationTargetException {
+    GuiceVaadin(Reflections reflections, Class<? extends Module>[] modules, Annotation[] annotations) throws IllegalAccessException, InstantiationException, InvocationTargetException {
         this(
                 new Provider<VaadinSession>() {
                     @Override
@@ -82,7 +88,8 @@ class GuiceVaadin implements SessionInitListener {
                     }
                 },
                 reflections,
-                modules
+                modules,
+                annotations
         );
     }
 
@@ -92,14 +99,24 @@ class GuiceVaadin implements SessionInitListener {
             Provider<View> currentViewProvider,
             Provider<VaadinService> vaadinServiceProvider,
             Reflections reflections,
-            Class<? extends Module>[] modules
+            Class<? extends Module>[] modules,
+            Annotation[] annotations
     ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+
+        Collection<Module> modulesFromAnnotations = getModulesFromAnnotations(annotations, reflections, this);
+
+        final List<Module> modulesFromGuiceVaadinConfiguration = getStaticModules(modules, reflections, this);
+
+        final Module staticPart = combine(concat(modulesFromAnnotations, modulesFromGuiceVaadinConfiguration));
+
+        final Set<Module> dynamicPart = getDynamicModules(reflections, this);
+
         /*
-         * combine bindings from the static modules in {@link Configuration#modules()} with those bindings
-         * from dynamically loaded modules, see {@link com.vaadin.guice.annotation.UIModule}.
+         * combine bindings from the static modules in {@link GuiceVaadinConfiguration#modules()} with those bindings
+         * from dynamically loaded modules, see {@link RuntimeModule}.
          * This is done first so modules can install their own reflections.
-         */
-        Module dynamicAndStaticModules = override(getStaticModules(modules, reflections, this)).with(getDynamicModules(reflections, this));
+        */
+        Module dynamicAndStaticModules = override(staticPart).with(dynamicPart);
 
         Set<Class<? extends View>> views = getGuiceViewClasses(reflections);
 
@@ -214,4 +231,8 @@ class GuiceVaadin implements SessionInitListener {
         return viewScoper;
     }
 
+    @Override
+    public Injector get() {
+        return checkNotNull(injector, "injector is not set up yet");
+    }
 }

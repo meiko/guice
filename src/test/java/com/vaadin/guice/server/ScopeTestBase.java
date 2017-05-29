@@ -15,6 +15,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.reflections.Reflections;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 
 import static org.junit.Assert.assertEquals;
@@ -47,7 +48,8 @@ public abstract class ScopeTestBase {
                 currentViewProvider,
                 vaadinServiceProvider,
                 reflections,
-                modules
+                modules,
+                new Annotation[0]
         );
     }
 
