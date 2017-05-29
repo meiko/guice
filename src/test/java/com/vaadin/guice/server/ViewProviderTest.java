@@ -12,6 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.reflections.Reflections;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 
 import static org.junit.Assert.assertEquals;
@@ -38,7 +39,10 @@ public class ViewProviderTest {
                 currentUIProvider,
                 currentViewProvider,
                 vaadinServiceProvider,
-                reflections, new Class[]{});
+                reflections,
+                new Class[0],
+                new Annotation[0]
+        );
 
         viewProvider = guiceVaadin.getViewProvider();
     }
