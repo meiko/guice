@@ -6,7 +6,7 @@ import com.google.inject.Module;
 import com.vaadin.guice.annotation.GuiceUI;
 import com.vaadin.guice.annotation.GuiceView;
 import com.vaadin.guice.annotation.GuiceViewChangeListener;
-import com.vaadin.guice.annotation.ModuleToCreate;
+import com.vaadin.guice.annotation.Import;
 import com.vaadin.guice.annotation.UIModule;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
@@ -58,14 +58,14 @@ final class ReflectionUtils {
 
         final Class<? extends Annotation> annotationClass = annotation.getClass();
 
-        if (!annotationClass.isAnnotationPresent(ModuleToCreate.class)) {
+        if (!annotationClass.isAnnotationPresent(Import.class)) {
             return null;
         }
 
-        final ModuleToCreate moduleToCreate = annotationClass.getAnnotation(ModuleToCreate.class);
+        final Import anImport = annotationClass.getAnnotation(Import.class);
 
         try {
-            final Class<? extends Module> moduleClass = moduleToCreate.value();
+            final Class<? extends Module> moduleClass = anImport.value();
 
             final Constructor<? extends Module> constructorWithAnnotation = moduleClass.getConstructor(annotationClass);
 
