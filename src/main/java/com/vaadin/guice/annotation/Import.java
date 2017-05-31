@@ -16,7 +16,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * guice-context the same way as if it was listed in {@link Configuration#modules()}.
  *
  * <pre>
- * &#064;ModuleToCreate(MyModule.class)
+ * &#064;Import(MyModule.class)
  * public &#064;interface MyCreationAnnotation {
  *     // ...
  *
@@ -47,7 +47,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  */
 @Retention(RUNTIME)
 @Target(ANNOTATION_TYPE)
-public @interface ModuleToCreate {
+public @interface Import {
     /**
      * the {@link Module to be created}
      */
