@@ -29,6 +29,7 @@
         <maven-compiler-plugin.version>3.5.1</maven-compiler-plugin.version>
         <java-source.version>1.6</java-source.version>
         <java-target.version>1.6</java-target.version>
+        <guava.version>22.0</guava.version>
     </properties>
     <dependencies>
         <dependency>
@@ -38,9 +39,20 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.google.inject.extensions</groupId>
             <artifactId>guice-multibindings</artifactId>
             <version>${guice.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.reflections</groupId>
