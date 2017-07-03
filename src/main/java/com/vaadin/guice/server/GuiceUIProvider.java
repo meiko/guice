@@ -1,15 +1,14 @@
 package com.vaadin.guice.server;
 
-import com.google.common.collect.ImmutableMap;
-
 import com.vaadin.guice.annotation.GuiceUI;
 import com.vaadin.server.UIClassSelectionEvent;
 import com.vaadin.server.UICreateEvent;
 import com.vaadin.server.UIProvider;
 import com.vaadin.ui.UI;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -38,8 +37,8 @@ class GuiceUIProvider extends UIProvider {
 
         logger.info("Checking the application context for Vaadin UIs");
 
-        final HashMap<String, Class<? extends UI>> pathToUIMapCollector = new HashMap<>();
-        final Map<String, Class<? extends UI>> wildcardPathToUIMapCollector = new HashMap<>();
+        pathToUIMap = new ConcurrentHashMap<>();
+        wildcardPathToUIMap = new ConcurrentHashMap<>();
 
         for (Class<? extends UI> uiClass : guiceVaadin.getUis()) {
 
@@ -53,7 +52,7 @@ class GuiceUIProvider extends UIProvider {
             String path = annotation.path();
             path = preparePath(path);
 
-            Class<? extends UI> existingUiForPath = pathToUIMapCollector.get(path);
+            Class<? extends UI> existingUiForPath = pathToUIMap.get(path);
 
             checkState(
                     existingUiForPath == null,
@@ -66,21 +65,19 @@ class GuiceUIProvider extends UIProvider {
                     new Object[]{uiClass.getCanonicalName(), path});
 
             if (path.endsWith("/*")) {
-                wildcardPathToUIMapCollector.put(path.substring(0, path.length() - 2),
-                        uiClass);
+                final String truncatedPath = path.substring(0, path.length() - 2);
+
+                wildcardPathToUIMap.put(truncatedPath, uiClass);
             } else {
-                pathToUIMapCollector.put(path, uiClass);
+                pathToUIMap.put(path, uiClass);
             }
         }
 
-        if (pathToUIMapCollector.isEmpty()) {
+        if (pathToUIMap.isEmpty()) {
             logger.log(Level.WARNING, "Found no Vaadin UIs in the application context");
         }
 
         this.navigatorManager = new NavigatorManager(guiceVaadin);
-
-        this.pathToUIMap = ImmutableMap.copyOf(pathToUIMapCollector);
-        this.wildcardPathToUIMap = ImmutableMap.copyOf(wildcardPathToUIMapCollector);
     }
 
     @Override
@@ -88,18 +85,23 @@ class GuiceUIProvider extends UIProvider {
             UIClassSelectionEvent uiClassSelectionEvent) {
         final String path = extractUIPathFromRequest(uiClassSelectionEvent
                 .getRequest());
-        if (pathToUIMap.containsKey(path)) {
-            return pathToUIMap.get(path);
-        }
 
-        for (Map.Entry<String, Class<? extends UI>> entry : wildcardPathToUIMap
-                .entrySet()) {
-            if (path.startsWith(entry.getKey())) {
-                return entry.getValue();
+        Class<? extends UI> uiClass = pathToUIMap.get(path);
+
+        if (uiClass == null) {
+            final Optional<? extends Class<? extends UI>> wildcardMatch = wildcardPathToUIMap
+                    .entrySet()
+                    .stream()
+                    .filter(entry -> path.startsWith(entry.getKey()))
+                    .map(Map.Entry::getValue)
+                    .findFirst();
+
+            if(wildcardMatch.isPresent()){
+                uiClass = wildcardMatch.get();
             }
         }
 
-        return null;
+        return uiClass;
     }
 
     @Override

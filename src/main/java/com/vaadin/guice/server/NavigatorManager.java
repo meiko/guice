@@ -3,7 +3,6 @@ package com.vaadin.guice.server;
 import com.vaadin.guice.annotation.GuiceUI;
 import com.vaadin.guice.annotation.UIScope;
 import com.vaadin.navigator.View;
-import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.navigator.ViewDisplay;
 import com.vaadin.navigator.ViewProvider;
 import com.vaadin.ui.Component;
@@ -36,24 +35,22 @@ final class NavigatorManager {
 
         checkState(annotation != null);
 
-        if (annotation.viewContainer().equals(Component.class)) {
+        Class<? extends Component> viewContainerClass = annotation.viewContainer();
+
+        if (viewContainerClass.equals(Component.class)) {
             return;
         }
 
-        Class<? extends Component> viewContainerClass = annotation.viewContainer();
-
         checkState(
-                viewContainerClass.getAnnotation(UIScope.class) != null,
+                viewContainerClass.isAnnotationPresent(UIScope.class),
                 "%s is annotated with having %s as it's viewContainer, but this class does not have a @UIScope annotation. " +
                         "ViewContainers must be put in UIScope",
                 uiClass, viewContainerClass
         );
 
-        Class<? extends GuiceNavigator> navigatorClass = annotation.navigator();
-
         Component defaultView = guiceVaadin.assemble(viewContainerClass);
 
-        GuiceNavigator navigator = guiceVaadin.assemble(navigatorClass);
+        GuiceNavigator navigator = guiceVaadin.assemble(annotation.navigator());
 
         if (defaultView instanceof ViewDisplay) {
             navigator.init(ui, (ViewDisplay) defaultView);
@@ -63,38 +60,34 @@ final class NavigatorManager {
             navigator.init(ui, (SingleComponentContainer) defaultView);
         } else {
             throw new IllegalArgumentException(
-                    format(
-                            "%s is set as viewContainer() in @GuiceUI of %s, must be either ComponentContainer, SingleComponentContainer or ViewDisplay",
-                            viewContainerClass,
-                            uiClass
-                    )
+                format(
+                    "%s is set as viewContainer() in @GuiceUI of %s, must be either ComponentContainer, SingleComponentContainer or ViewDisplay",
+                    viewContainerClass,
+                    uiClass
+                )
             );
         }
 
-        if (errorViewClassOptional.isPresent()) {
+        errorViewClassOptional.ifPresent(errorViewClass -> navigator.setErrorProvider(
+            new ViewProvider() {
+                @Override
+                public String getViewName(String viewAndParameters) {
+                    return removeParametersFromViewName(viewAndParameters);
+                }
 
-            final Class<? extends View> errorViewClass = errorViewClassOptional.get();
+                @Override
+                public View getView(String viewName) {
+                    //noinspection OptionalGetWithoutIsPresent
+                    return guiceVaadin.assemble(errorViewClass);
+                }
+            }
+        ));
 
-            navigator.setErrorProvider(
-                    new ViewProvider() {
-                        @Override
-                        public String getViewName(String viewAndParameters) {
-                            return removeParametersFromViewName(viewAndParameters);
-                        }
-
-                        @Override
-                        public View getView(String viewName) {
-                            //noinspection OptionalGetWithoutIsPresent
-                            return guiceVaadin.assemble(errorViewClass);
-                        }
-                    }
-            );
-        }
-
-        for (Class<? extends ViewChangeListener> viewChangeListenerClass : guiceVaadin.getViewChangeListeners(uiClass)) {
-            ViewChangeListener viewChangeListener = guiceVaadin.assemble(viewChangeListenerClass);
-            navigator.addViewChangeListener(viewChangeListener);
-        }
+        guiceVaadin
+                .getViewChangeListeners(uiClass)
+                .stream()
+                .map(guiceVaadin::assemble)
+                .forEach(navigator::addViewChangeListener);
 
         navigator.addProvider(guiceVaadin.getViewProvider());
 
