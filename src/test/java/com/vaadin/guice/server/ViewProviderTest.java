@@ -13,7 +13,6 @@ import org.junit.Test;
 import org.reflections.Reflections;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -25,7 +24,7 @@ public class ViewProviderTest {
 
     @Before
     @SuppressWarnings("unckecked")
-    public void setup() throws NoSuchFieldException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    public void setup() throws ReflectiveOperationException {
 
         Provider<VaadinSession> vaadinSessionProvider = (Provider<VaadinSession>) mock(Provider.class);
         Provider<UI> currentUIProvider = (Provider<UI>) mock(Provider.class);

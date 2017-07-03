@@ -21,7 +21,6 @@ import com.vaadin.ui.UI;
 import org.reflections.Reflections;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +60,7 @@ class GuiceVaadin implements SessionInitListener, Provider<Injector> {
     private Set<Class<? extends VaadinServiceInitListener>> vaadinServiceInitListeners;
 
     //used for non-testing
-    GuiceVaadin(Reflections reflections, Class<? extends Module>[] modules, Annotation[] annotations) throws IllegalAccessException, InstantiationException, InvocationTargetException {
+    GuiceVaadin(Reflections reflections, Class<? extends Module>[] modules, Annotation[] annotations) throws ReflectiveOperationException {
         this(
                 VaadinSession::getCurrent,
                 UI::getCurrent,
@@ -87,7 +86,7 @@ class GuiceVaadin implements SessionInitListener, Provider<Injector> {
             Reflections reflections,
             Class<? extends Module>[] modules,
             Annotation[] annotations
-    ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    ) throws ReflectiveOperationException {
 
         Collection<Module> modulesFromAnnotations = getModulesFromAnnotations(annotations, reflections, this);
 
