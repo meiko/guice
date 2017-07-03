@@ -42,7 +42,7 @@ class VaadinModule extends AbstractModule {
 
         final Multibinder<View> viewMultibinder = newSetBinder(binder(), View.class, AllKnownGuiceViews.class);
 
-        guiceVaadin.getViews().forEach(viewMultibinder.addBinding()::to);
+        guiceVaadin.getViews().forEach(view -> viewMultibinder.addBinding().to(view));
 
         bindListener(new GuiceUIBindingMatcher(), new NavigatorManager(guiceVaadin));
     }

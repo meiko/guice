@@ -6,6 +6,10 @@ import com.vaadin.ui.ComponentContainer;
 import com.vaadin.ui.SingleComponentContainer;
 import com.vaadin.ui.UI;
 
+/**
+ * subclass
+ * @see Navigator
+ */
 public class GuiceNavigator extends Navigator {
 
     private static final long serialVersionUID = -2693174603614667628L;
