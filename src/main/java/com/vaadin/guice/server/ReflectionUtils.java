@@ -90,7 +90,7 @@ final class ReflectionUtils {
         }
     }
 
-    private static Module createIfModuleToCreate(Class<? extends Module> type, Reflections reflections, final GuiceVaadin guiceVaadin) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    private static Module createIfModuleToCreate(Class<? extends Module> type, Reflections reflections, final GuiceVaadin guiceVaadin) throws ReflectiveOperationException {
         final Module module = type.newInstance();
 
         postProcess(reflections, guiceVaadin, module);
@@ -108,7 +108,7 @@ final class ReflectionUtils {
         }
     }
 
-    static List<Module> getStaticModules(Class<? extends Module>[] modules, Reflections reflections, GuiceVaadin guiceVaadin) throws IllegalAccessException, InstantiationException, InvocationTargetException {
+    static List<Module> getStaticModules(Class<? extends Module>[] modules, Reflections reflections, GuiceVaadin guiceVaadin) throws ReflectiveOperationException {
         List<Module> hardWiredModules = new ArrayList<>(modules.length);
 
         for (Class<? extends Module> moduleClass : modules) {
@@ -118,7 +118,7 @@ final class ReflectionUtils {
     }
 
     @SuppressWarnings("unchecked")
-    static Set<Module> getDynamicModules(Reflections reflections, GuiceVaadin guiceVaadin) throws IllegalAccessException, InstantiationException, InvocationTargetException {
+    static Set<Module> getDynamicModules(Reflections reflections, GuiceVaadin guiceVaadin) throws ReflectiveOperationException {
         Set<Module> dynamicallyLoadedModules = new HashSet<>();
 
         for (Class<?> dynamicallyLoadedModuleClass : reflections.getTypesAnnotatedWith(UIModule.class, true)) {
