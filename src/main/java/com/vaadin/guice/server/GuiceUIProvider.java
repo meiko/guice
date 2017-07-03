@@ -28,7 +28,6 @@ class GuiceUIProvider extends UIProvider {
     private final Map<String, Class<? extends UI>> pathToUIMap;
     private final Map<String, Class<? extends UI>> wildcardPathToUIMap;
     private final GuiceVaadin guiceVaadin;
-    private final NavigatorManager navigatorManager;
 
     GuiceUIProvider(GuiceVaadin guiceVaadin) {
         this.guiceVaadin = guiceVaadin;
@@ -75,8 +74,6 @@ class GuiceUIProvider extends UIProvider {
         if (pathToUIMap.isEmpty()) {
             logger.log(Level.WARNING, "Found no Vaadin UIs in the application context");
         }
-
-        this.navigatorManager = new NavigatorManager(guiceVaadin);
     }
 
     @Override
@@ -107,8 +104,6 @@ class GuiceUIProvider extends UIProvider {
                 guiceVaadin.getUiScoper().startInitialization();
 
                 UI instance = guiceVaadin.assemble(event.getUIClass());
-
-                navigatorManager.addNavigator(instance);
 
                 guiceVaadin.getUiScoper().endInitialization(instance);
 

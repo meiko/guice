@@ -44,6 +44,6 @@ class VaadinModule extends AbstractModule {
             viewMultibinder.addBinding().to(guiceViewClass);
         }
 
-
+        bindListener(new GuiceUIBindingMatcher(), new NavigatorManager(guiceVaadin));
     }
 }

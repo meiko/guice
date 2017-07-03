@@ -1,5 +1,7 @@
 package com.vaadin.guice.server;
 
+import com.google.inject.spi.ProvisionListener;
+
 import com.vaadin.guice.annotation.GuiceUI;
 import com.vaadin.guice.annotation.UIScope;
 import com.vaadin.navigator.View;
@@ -17,7 +19,7 @@ import static com.vaadin.guice.server.PathUtil.removeParametersFromViewName;
 import static com.vaadin.guice.server.ReflectionUtils.findErrorView;
 import static java.lang.String.format;
 
-final class NavigatorManager {
+final class NavigatorManager implements ProvisionListener {
 
     private final Optional<Class<? extends View>> errorViewClassOptional;
     private final GuiceVaadin guiceVaadin;
@@ -27,7 +29,9 @@ final class NavigatorManager {
         this.guiceVaadin = guiceVaadin;
     }
 
-    void addNavigator(UI ui) {
+    @Override
+    public <T> void onProvision(ProvisionInvocation<T> provision) {
+        UI ui = (UI)provision.provision();
 
         final Class<? extends UI> uiClass = ui.getClass();
 
@@ -60,27 +64,27 @@ final class NavigatorManager {
             navigator.init(ui, (SingleComponentContainer) defaultView);
         } else {
             throw new IllegalArgumentException(
-                format(
-                    "%s is set as viewContainer() in @GuiceUI of %s, must be either ComponentContainer, SingleComponentContainer or ViewDisplay",
-                    viewContainerClass,
-                    uiClass
-                )
+                    format(
+                            "%s is set as viewContainer() in @GuiceUI of %s, must be either ComponentContainer, SingleComponentContainer or ViewDisplay",
+                            viewContainerClass,
+                            uiClass
+                    )
             );
         }
 
         errorViewClassOptional.ifPresent(errorViewClass -> navigator.setErrorProvider(
-            new ViewProvider() {
-                @Override
-                public String getViewName(String viewAndParameters) {
-                    return removeParametersFromViewName(viewAndParameters);
-                }
+                new ViewProvider() {
+                    @Override
+                    public String getViewName(String viewAndParameters) {
+                        return removeParametersFromViewName(viewAndParameters);
+                    }
 
-                @Override
-                public View getView(String viewName) {
-                    //noinspection OptionalGetWithoutIsPresent
-                    return guiceVaadin.assemble(errorViewClass);
+                    @Override
+                    public View getView(String viewName) {
+                        //noinspection OptionalGetWithoutIsPresent
+                        return guiceVaadin.assemble(errorViewClass);
+                    }
                 }
-            }
         ));
 
         guiceVaadin
