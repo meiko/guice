@@ -7,7 +7,7 @@ import java.util.Set;
 
 final class ObjectSetPool {
     private static final int OBJECT_SET_REUSE_SIZE_MAX = 1024;
-    private static final Deque<Set<Object>> pool = new ArrayDeque<Set<Object>>();
+    private static final Deque<Set<Object>> pool = new ArrayDeque<>();
 
     private ObjectSetPool() {
     }
@@ -15,7 +15,7 @@ final class ObjectSetPool {
     static Set<Object> leaseMap() {
         synchronized (pool) {
             return pool.isEmpty()
-                    ? new HashSet<Object>()
+                    ? new HashSet<>()
                     : pool.pop();
         }
     }

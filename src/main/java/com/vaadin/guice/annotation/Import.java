@@ -9,7 +9,7 @@ import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * Marks an {@link java.lang.annotation.Annotation} as creater of a {@link Module}.
+ * Marks an {@link java.lang.annotation.Annotation} as creator of a {@link Module}.
  * The module needs to have a standard-constructor or a constructor accepting
  * the annotated Annotation as only parameter. If both constructors are present, the
  * one accepting the annotation will be used. The module will then be installed in the

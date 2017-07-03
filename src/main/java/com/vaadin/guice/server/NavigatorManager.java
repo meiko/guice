@@ -75,7 +75,6 @@ final class NavigatorManager {
 
             final Class<? extends View> errorViewClass = errorViewClassOptional.get();
 
-
             navigator.setErrorProvider(
                     new ViewProvider() {
                         @Override

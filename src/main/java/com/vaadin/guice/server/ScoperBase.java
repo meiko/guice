@@ -20,7 +20,7 @@ import static com.google.common.base.Preconditions.checkState;
 abstract class ScoperBase<SCOPE_BASE> implements Scope, SessionDestroyListener, SessionInitListener {
     private final Provider<VaadinSession> vaadinSessionProvider;
     private final Provider<SCOPE_BASE> currentInstanceProvider;
-    private final Map<VaadinSession, Map<SCOPE_BASE, Map<Key<?>, Object>>> sessionToScopedObjectsMap = new ConcurrentHashMap<VaadinSession, Map<SCOPE_BASE, Map<Key<?>, Object>>>();
+    private final Map<VaadinSession, Map<SCOPE_BASE, Map<Key<?>, Object>>> sessionToScopedObjectsMap = new ConcurrentHashMap<>();
     private Map<Key<?>, Object> currentInitializationScopeSet = null;
 
     ScoperBase(Provider<SCOPE_BASE> currentInstanceProvider, Provider<VaadinSession> vaadinSessionProvider) {
@@ -48,23 +48,9 @@ abstract class ScoperBase<SCOPE_BASE> implements Scope, SessionDestroyListener, 
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> Provider<T> scope(final Key<T> key, final Provider<T> unscoped) {
-        return new Provider<T>() {
-            @Override
-            @SuppressWarnings("unchecked")
-            public T get() {
-                Map<Key<?>, Object> scopedObjects = getCurrentScopeMap();
-
-                T t = (T) scopedObjects.get(key);
-
-                if (t == null) {
-                    t = unscoped.get();
-                    scopedObjects.put(key, t);
-                }
-
-                return t;
-            }
-        };
+        return () -> (T) getCurrentScopeMap().computeIfAbsent(key, k -> unscoped.get());
     }
 
     private Map<Key<?>, Object> getCurrentScopeMap() {
@@ -94,6 +80,6 @@ abstract class ScoperBase<SCOPE_BASE> implements Scope, SessionDestroyListener, 
 
     @Override
     public void sessionInit(SessionInitEvent event) throws ServiceException {
-        sessionToScopedObjectsMap.put(event.getSession(), new HashMap<SCOPE_BASE, Map<Key<?>, Object>>());
+        sessionToScopedObjectsMap.put(event.getSession(), new HashMap<>());
     }
 }

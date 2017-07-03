@@ -9,7 +9,7 @@ import java.util.Map;
 
 final class KeyObjectMapPool {
     private static final int KEY_OBJECT_MAP_REUSE_SIZE_MAX = 1024;
-    private static final Deque<Map<Key<?>, Object>> pool = new ArrayDeque<Map<Key<?>, Object>>();
+    private static final Deque<Map<Key<?>, Object>> pool = new ArrayDeque<>();
 
     private KeyObjectMapPool() {
     }
@@ -17,7 +17,7 @@ final class KeyObjectMapPool {
     static Map<Key<?>, Object> leaseMap() {
         synchronized (pool) {
             return pool.isEmpty()
-                    ? new HashMap<Key<?>, Object>()
+                    ? new HashMap<>()
                     : pool.pop();
         }
     }

@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 class VaadinSessionScoper implements Scope, SessionDestroyListener {
 
-    private final Map<VaadinSession, Map<Key<?>, Object>> scopedObjectsBySession = new ConcurrentHashMap<VaadinSession, Map<Key<?>, Object>>();
+    private final Map<VaadinSession, Map<Key<?>, Object>> scopedObjectsBySession = new ConcurrentHashMap<>();
     private final Provider<VaadinSession> vaadinSessionProvider;
 
     VaadinSessionScoper(Provider<VaadinSession> vaadinSessionProvider) {

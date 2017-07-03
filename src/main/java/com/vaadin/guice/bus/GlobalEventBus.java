@@ -5,8 +5,6 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
-import com.vaadin.server.SessionDestroyEvent;
-import com.vaadin.server.SessionDestroyListener;
 import com.vaadin.server.VaadinService;
 import com.vaadin.server.VaadinSession;
 
@@ -33,19 +31,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Singleton
 public final class GlobalEventBus extends EventBus {
 
-    private final Map<VaadinSession, Set<Object>> registeredObjectsBySession = new ConcurrentHashMap<VaadinSession, Set<Object>>();
+    private final Map<VaadinSession, Set<Object>> registeredObjectsBySession = new ConcurrentHashMap<>();
     private final Provider<VaadinSession> vaadinSessionProvider;
 
     @Inject
     GlobalEventBus(VaadinService vaadinService, Provider<VaadinSession> vaadinSessionProvider) {
         this.vaadinSessionProvider = vaadinSessionProvider;
 
-        vaadinService.addSessionDestroyListener(new SessionDestroyListener() {
-            @Override
-            public void sessionDestroy(SessionDestroyEvent sessionDestroyEvent) {
-                releaseAll(sessionDestroyEvent.getSession());
-            }
-        });
+        vaadinService.addSessionDestroyListener(e -> releaseAll(e.getSession()));
     }
 
     private void releaseAll(VaadinSession vaadinSession) {
@@ -75,14 +68,10 @@ public final class GlobalEventBus extends EventBus {
     }
 
     private Set<Object> getRegisteredObjects() {
-        Set<Object> registeredObjects = registeredObjectsBySession.get(vaadinSessionProvider.get());
-
-        if (registeredObjects == null) {
-            registeredObjects = ObjectSetPool.leaseMap();
-            registeredObjectsBySession.put(vaadinSessionProvider.get(), registeredObjects);
-        }
-
-        return registeredObjects;
+        return registeredObjectsBySession.computeIfAbsent(
+                vaadinSessionProvider.get(),
+                session -> ObjectSetPool.leaseMap()
+        );
     }
 
     @Override
