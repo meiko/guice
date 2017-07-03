@@ -7,7 +7,6 @@ import com.vaadin.server.UIProvider;
 import com.vaadin.ui.UI;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -88,20 +87,17 @@ class GuiceUIProvider extends UIProvider {
 
         Class<? extends UI> uiClass = pathToUIMap.get(path);
 
-        if (uiClass == null) {
-            final Optional<? extends Class<? extends UI>> wildcardMatch = wildcardPathToUIMap
-                    .entrySet()
-                    .stream()
-                    .filter(entry -> path.startsWith(entry.getKey()))
-                    .map(Map.Entry::getValue)
-                    .findFirst();
-
-            if(wildcardMatch.isPresent()){
-                uiClass = wildcardMatch.get();
-            }
+        if (uiClass != null) {
+            return uiClass;
         }
 
-        return uiClass;
+        return wildcardPathToUIMap
+                .entrySet()
+                .stream()
+                .filter(entry -> path.startsWith(entry.getKey()))
+                .map(Map.Entry::getValue)
+                .findFirst()
+                .orElse(null);
     }
 
     @Override
