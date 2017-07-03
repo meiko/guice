@@ -6,7 +6,6 @@ import com.vaadin.guice.annotation.GuiceUI;
 import com.vaadin.guice.annotation.UIScope;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewDisplay;
-import com.vaadin.navigator.ViewProvider;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.ComponentContainer;
 import com.vaadin.ui.SingleComponentContainer;
@@ -15,17 +14,19 @@ import com.vaadin.ui.UI;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkState;
-import static com.vaadin.guice.server.PathUtil.removeParametersFromViewName;
 import static com.vaadin.guice.server.ReflectionUtils.findErrorView;
 import static java.lang.String.format;
 
 final class NavigatorManager implements ProvisionListener {
 
-    private final Optional<Class<? extends View>> errorViewClassOptional;
+    private final Optional<ErrorViewProvider> optionalErrorViewProvider;
     private final GuiceVaadin guiceVaadin;
 
     NavigatorManager(GuiceVaadin guiceVaadin) {
-        this.errorViewClassOptional = findErrorView(guiceVaadin.getViews());
+        final Optional<Class<? extends View>> optionalErrorViewClass = findErrorView(guiceVaadin.getViews());
+
+        optionalErrorViewProvider = optionalErrorViewClass.map(errorViewClass -> new ErrorViewProvider(guiceVaadin, errorViewClass));
+
         this.guiceVaadin = guiceVaadin;
     }
 
@@ -72,20 +73,7 @@ final class NavigatorManager implements ProvisionListener {
             );
         }
 
-        errorViewClassOptional.ifPresent(errorViewClass -> navigator.setErrorProvider(
-                new ViewProvider() {
-                    @Override
-                    public String getViewName(String viewAndParameters) {
-                        return removeParametersFromViewName(viewAndParameters);
-                    }
-
-                    @Override
-                    public View getView(String viewName) {
-                        //noinspection OptionalGetWithoutIsPresent
-                        return guiceVaadin.assemble(errorViewClass);
-                    }
-                }
-        ));
+        optionalErrorViewProvider.ifPresent(navigator::setErrorProvider);
 
         guiceVaadin
                 .getViewChangeListeners(uiClass)

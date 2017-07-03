@@ -16,6 +16,8 @@ import com.vaadin.server.VaadinService;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.UI;
 
+import static com.google.inject.multibindings.Multibinder.newSetBinder;
+
 class VaadinModule extends AbstractModule {
 
     private final GuiceVaadin guiceVaadin;
@@ -38,11 +40,9 @@ class VaadinModule extends AbstractModule {
         bind(UI.class).toProvider(guiceVaadin.getCurrentUIProvider());
         bind(VaadinService.class).toProvider(guiceVaadin.getVaadinServiceProvider());
 
-        final Multibinder<View> viewMultibinder = Multibinder.newSetBinder(binder(), View.class, AllKnownGuiceViews.class);
+        final Multibinder<View> viewMultibinder = newSetBinder(binder(), View.class, AllKnownGuiceViews.class);
 
-        for (Class<? extends View> guiceViewClass : guiceVaadin.getViews()) {
-            viewMultibinder.addBinding().to(guiceViewClass);
-        }
+        guiceVaadin.getViews().forEach(viewMultibinder.addBinding()::to);
 
         bindListener(new GuiceUIBindingMatcher(), new NavigatorManager(guiceVaadin));
     }
