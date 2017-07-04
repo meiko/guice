@@ -3,7 +3,10 @@ package com.vaadin.guice.server;
 import com.google.inject.Injector;
 
 import com.vaadin.guice.annotation.Configuration;
+import com.vaadin.server.DeploymentConfiguration;
+import com.vaadin.server.ServiceException;
 import com.vaadin.server.VaadinServlet;
+import com.vaadin.server.VaadinServletService;
 
 import org.reflections.Reflections;
 
@@ -46,6 +49,11 @@ public class GuiceVaadinServlet extends VaadinServlet {
     @Override
     protected void servletInitialized() throws ServletException {
         guiceVaadin.vaadinInitialized();
+    }
+
+    @Override
+    protected VaadinServletService createServletService(DeploymentConfiguration deploymentConfiguration) throws ServiceException {
+        return new GuiceVaadinServletService(this, deploymentConfiguration, guiceVaadin);
     }
 
     /**

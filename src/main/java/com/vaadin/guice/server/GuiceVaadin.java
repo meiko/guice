@@ -9,7 +9,6 @@ import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.DefaultUIProvider;
 import com.vaadin.server.ServiceException;
-import com.vaadin.server.ServiceInitEvent;
 import com.vaadin.server.SessionInitEvent;
 import com.vaadin.server.SessionInitListener;
 import com.vaadin.server.UIProvider;
@@ -22,6 +21,7 @@ import org.reflections.Reflections;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -57,7 +57,7 @@ class GuiceVaadin implements SessionInitListener, Provider<Injector> {
     private final Injector injector;
     private final VaadinSessionScoper vaadinSessionScoper;
     private final ViewScoper viewScoper;
-    private Set<Class<? extends VaadinServiceInitListener>> vaadinServiceInitListeners;
+    private final Set<Class<? extends VaadinServiceInitListener>> vaadinServiceInitListeners;
 
     //used for non-testing
     GuiceVaadin(Reflections reflections, Class<? extends Module>[] modules, Annotation[] annotations) throws ReflectiveOperationException {
@@ -163,13 +163,6 @@ class GuiceVaadin implements SessionInitListener, Provider<Injector> {
         service.addSessionDestroyListener(viewProvider);
         service.addSessionInitListener(viewProvider);
         service.addSessionDestroyListener(vaadinSessionScoper);
-
-        ServiceInitEvent event = new ServiceInitEvent(service);
-
-        for (Class<? extends VaadinServiceInitListener> initListenerClass : vaadinServiceInitListeners) {
-            final VaadinServiceInitListener vaadinServiceInitListener = assemble(initListenerClass);
-            vaadinServiceInitListener.serviceInit(event);
-        }
     }
 
     GuiceViewProvider getViewProvider() {
@@ -227,5 +220,13 @@ class GuiceVaadin implements SessionInitListener, Provider<Injector> {
     @Override
     public Injector get() {
         return checkNotNull(injector, "injector is not set up yet");
+    }
+
+    Iterator<VaadinServiceInitListener> getServiceInitListeners() {
+        return vaadinServiceInitListeners
+                .stream()
+                .map(this::assemble)
+                .map(listener -> (VaadinServiceInitListener)listener)
+                .iterator();
     }
 }
