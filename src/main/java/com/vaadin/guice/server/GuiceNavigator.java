@@ -1,5 +1,6 @@
 package com.vaadin.guice.server;
 
+import com.vaadin.guice.annotation.GuiceUI;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.ViewDisplay;
 import com.vaadin.ui.ComponentContainer;
@@ -7,8 +8,10 @@ import com.vaadin.ui.SingleComponentContainer;
 import com.vaadin.ui.UI;
 
 /**
- * subclass
+ * GuiceNavigator is the default {@link Navigator} for GuiceVaadin
+ *
  * @see Navigator
+ * @see GuiceUI#navigator()
  */
 public class GuiceNavigator extends Navigator {
 

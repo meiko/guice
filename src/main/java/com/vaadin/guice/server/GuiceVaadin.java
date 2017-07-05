@@ -222,7 +222,7 @@ class GuiceVaadin implements SessionInitListener, Provider<Injector> {
         return vaadinServiceInitListeners
                 .stream()
                 .map(injector::getInstance)
-                .map(listener -> (VaadinServiceInitListener)listener)
+                .map(listener -> (VaadinServiceInitListener) listener)
                 .iterator();
     }
 }

@@ -110,7 +110,7 @@ final class UIProvisionListener extends AbstractMatcher<Binding<?>> implements P
             try {
                 uiScoper.startInitialization();
 
-                ui = (UI)provision.provision();
+                ui = (UI) provision.provision();
 
                 uiScoper.endInitialization(ui);
 

@@ -9,7 +9,7 @@ class ErrorViewProvider implements ViewProvider {
     private final GuiceVaadin guiceVaadin;
     private final Class<? extends View> errorViewClass;
 
-    public ErrorViewProvider(GuiceVaadin guiceVaadin, Class<? extends View> errorViewClass) {
+    ErrorViewProvider(GuiceVaadin guiceVaadin, Class<? extends View> errorViewClass) {
         this.guiceVaadin = guiceVaadin;
         this.errorViewClass = errorViewClass;
     }
