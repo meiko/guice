@@ -133,7 +133,7 @@ public class UIScopeTest extends ScopeTestBase {
         assertNotNull(target1);
         assertNotNull(target2);
 
-        final Singleton1 singleton = guiceVaadin.assemble(Singleton1.class);
+        final Singleton1 singleton = guiceVaadin.getInjector().getInstance(Singleton1.class);
 
         assertNotNull(singleton);
         assertEquals(singleton, target1.getSingleton1());
@@ -184,7 +184,7 @@ public class UIScopeTest extends ScopeTestBase {
 
     private Target createTarget() {
         guiceVaadin.getUiScoper().startInitialization();
-        Target target = guiceVaadin.assemble(Target.class);
+        Target target = guiceVaadin.getInjector().getInstance(Target.class);
         guiceVaadin.getUiScoper().endInitialization(target);
         setCurrentUi(target);
         return target;

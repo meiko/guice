@@ -193,10 +193,6 @@ class GuiceVaadin implements SessionInitListener, Provider<Injector> {
         return vaadinServiceProvider;
     }
 
-    <T> T assemble(Class<T> type) {
-        return injector.getInstance(type);
-    }
-
     Set<Class<? extends UI>> getUis() {
         return uis;
     }
@@ -225,7 +221,7 @@ class GuiceVaadin implements SessionInitListener, Provider<Injector> {
     Iterator<VaadinServiceInitListener> getServiceInitListeners() {
         return vaadinServiceInitListeners
                 .stream()
-                .map(this::assemble)
+                .map(injector::getInstance)
                 .map(listener -> (VaadinServiceInitListener)listener)
                 .iterator();
     }

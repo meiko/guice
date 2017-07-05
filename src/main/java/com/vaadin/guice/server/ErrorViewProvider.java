@@ -21,6 +21,6 @@ class ErrorViewProvider implements ViewProvider {
 
     @Override
     public View getView(String viewName) {
-        return guiceVaadin.assemble(errorViewClass);
+        return guiceVaadin.getInjector().getInstance(errorViewClass);
     }
 }

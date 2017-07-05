@@ -23,12 +23,12 @@ public class UIModuleTest {
     public void dynamically_loaded_modules_should_override() throws NoSuchFieldException, IllegalAccessException {
         GuiceVaadin guiceVaadin = getGuiceVaadin(new VaadinServletWithStaticAndDynamicLoadedModules());
 
-        AnInterface anInterface = guiceVaadin.assemble(AnInterface.class);
+        AnInterface anInterface = guiceVaadin.getInjector().getInstance(AnInterface.class);
 
         assertNotNull(anInterface);
         assertTrue(anInterface instanceof ASecondImplementation);
 
-        AnotherInterface anotherInterface = guiceVaadin.assemble(AnotherInterface.class);
+        AnotherInterface anotherInterface = guiceVaadin.getInjector().getInstance(AnotherInterface.class);
 
         assertNotNull(anotherInterface);
         assertTrue(anotherInterface instanceof AnotherInterfaceImplementation);
@@ -38,12 +38,12 @@ public class UIModuleTest {
     public void statically_loaded_modules_should_be_considered() throws NoSuchFieldException, IllegalAccessException {
         GuiceVaadin guiceVaadin = getGuiceVaadin(new VaadinServletWithStaticLoadedModule());
 
-        AnInterface anInterface = guiceVaadin.assemble(AnInterface.class);
+        AnInterface anInterface = guiceVaadin.getInjector().getInstance(AnInterface.class);
 
         assertNotNull(anInterface);
         assertTrue(anInterface instanceof AnImplementation);
 
-        AnotherInterface anotherInterface = guiceVaadin.assemble(AnotherInterface.class);
+        AnotherInterface anotherInterface = guiceVaadin.getInjector().getInstance(AnotherInterface.class);
 
         assertNotNull(anotherInterface);
         assertTrue(anotherInterface instanceof AnotherInterfaceImplementation);
@@ -53,7 +53,7 @@ public class UIModuleTest {
     public void dynamically_loaded_modules_should_be_considered() throws NoSuchFieldException, IllegalAccessException {
         GuiceVaadin guiceVaadin = getGuiceVaadin(new VaadinServletWithDynamicLoadedModule());
 
-        AnInterface anInterface = guiceVaadin.assemble(AnInterface.class);
+        AnInterface anInterface = guiceVaadin.getInjector().getInstance(AnInterface.class);
 
         assertNotNull(anInterface);
         assertTrue(anInterface instanceof ASecondImplementation);
@@ -63,7 +63,7 @@ public class UIModuleTest {
     public void unbound_classes_should_not_be_available() throws NoSuchFieldException, IllegalAccessException {
         GuiceVaadin guiceVaadin = getGuiceVaadin(new VaadinServletWithDynamicLoadedModule());
 
-        guiceVaadin.assemble(AnotherInterface.class);
+        guiceVaadin.getInjector().getInstance(AnotherInterface.class);
     }
 
     private GuiceVaadin getGuiceVaadin(GuiceVaadinServlet servlet) throws NoSuchFieldException, IllegalAccessException {

@@ -67,9 +67,9 @@ final class UIProvisionListener extends AbstractMatcher<Binding<?>> implements P
                 uiClass, viewContainerClass
         );
 
-        Component defaultView = guiceVaadin.assemble(viewContainerClass);
+        Component defaultView = guiceVaadin.getInjector().getInstance(viewContainerClass);
 
-        GuiceNavigator navigator = guiceVaadin.assemble(annotation.navigator());
+        GuiceNavigator navigator = guiceVaadin.getInjector().getInstance(annotation.navigator());
 
         if (defaultView instanceof ViewDisplay) {
             navigator.init(ui, (ViewDisplay) defaultView);
@@ -92,7 +92,7 @@ final class UIProvisionListener extends AbstractMatcher<Binding<?>> implements P
         guiceVaadin
                 .getViewChangeListeners(uiClass)
                 .stream()
-                .map(guiceVaadin::assemble)
+                .map(guiceVaadin.getInjector()::getInstance)
                 .forEach(navigator::addViewChangeListener);
 
         navigator.addProvider(guiceVaadin.getViewProvider());

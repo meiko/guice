@@ -122,7 +122,7 @@ class GuiceViewProvider implements ViewProvider, SessionDestroyListener, Session
                 try {
                     guiceVaadin.getViewScoper().startInitialization();
 
-                    view = guiceVaadin.assemble(viewClass);
+                    view = guiceVaadin.getInjector().getInstance(viewClass);
                     views.put(viewName, view);
 
                     guiceVaadin.getViewScoper().endInitialization(view);

@@ -56,11 +56,11 @@ public abstract class ScopeTestBase {
     public void testPrototype() throws ServiceException, NoSuchFieldException, IllegalAccessException {
         newSession();
         guiceVaadin.getUiScoper().startInitialization();
-        Target target1 = guiceVaadin.assemble(Target.class);
+        Target target1 = guiceVaadin.get().getInstance(Target.class);
         guiceVaadin.getUiScoper().endInitialization(target1);
         guiceVaadin.getUiScoper().startInitialization();
         newSession();
-        Target target2 = guiceVaadin.assemble(Target.class);
+        Target target2 = guiceVaadin.getInjector().getInstance(Target.class);
         guiceVaadin.getUiScoper().endInitialization(target2);
 
         assertNotEquals(target1.getPrototype1(), target2.getPrototype1());
@@ -70,11 +70,11 @@ public abstract class ScopeTestBase {
     public void testSingleton() throws ServiceException, NoSuchFieldException, IllegalAccessException {
         newSession();
         guiceVaadin.getUiScoper().startInitialization();
-        Target target1 = guiceVaadin.assemble(Target.class);
+        Target target1 = guiceVaadin.getInjector().getInstance(Target.class);
         guiceVaadin.getUiScoper().endInitialization(target1);
         guiceVaadin.getUiScoper().startInitialization();
         newSession();
-        Target target2 = guiceVaadin.assemble(Target.class);
+        Target target2 = guiceVaadin.getInjector().getInstance(Target.class);
         guiceVaadin.getUiScoper().endInitialization(target2);
 
         assertEquals(target1.getSingleton1(), target2.getSingleton1());
@@ -86,11 +86,11 @@ public abstract class ScopeTestBase {
 
         newSession();
         guiceVaadin.getUiScoper().startInitialization();
-        Target target1 = guiceVaadin.assemble(Target.class);
+        Target target1 = guiceVaadin.getInjector().getInstance(Target.class);
         guiceVaadin.getUiScoper().endInitialization(target1);
         guiceVaadin.getUiScoper().startInitialization();
         newSession();
-        Target target2 = guiceVaadin.assemble(Target.class);
+        Target target2 = guiceVaadin.getInjector().getInstance(Target.class);
         guiceVaadin.getUiScoper().endInitialization(target2);
 
         assertNotNull(target1);
@@ -103,11 +103,11 @@ public abstract class ScopeTestBase {
 
         newSession();
         guiceVaadin.getUiScoper().startInitialization();
-        Target target1 = guiceVaadin.assemble(Target.class);
+        Target target1 = guiceVaadin.getInjector().getInstance(Target.class);
         guiceVaadin.getUiScoper().endInitialization(target1);
         guiceVaadin.getUiScoper().startInitialization();
         newSession();
-        Target target2 = guiceVaadin.assemble(Target.class);
+        Target target2 = guiceVaadin.getInjector().getInstance(Target.class);
         guiceVaadin.getUiScoper().endInitialization(target2);
 
         assertNotNull(target1);

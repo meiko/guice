@@ -99,6 +99,6 @@ class GuiceUIProvider extends UIProvider {
 
     @Override
     public UI createInstance(UICreateEvent event) {
-        return guiceVaadin.assemble(event.getUIClass());
+        return guiceVaadin.getInjector().getInstance(event.getUIClass());
     }
 }
