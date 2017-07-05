@@ -6,7 +6,7 @@ import com.vaadin.navigator.ViewProvider;
 import static com.vaadin.guice.server.PathUtil.removeParametersFromViewName;
 
 class ErrorViewProvider implements ViewProvider {
-    private GuiceVaadin guiceVaadin;
+    private final GuiceVaadin guiceVaadin;
     private final Class<? extends View> errorViewClass;
 
     public ErrorViewProvider(GuiceVaadin guiceVaadin, Class<? extends View> errorViewClass) {
@@ -21,7 +21,6 @@ class ErrorViewProvider implements ViewProvider {
 
     @Override
     public View getView(String viewName) {
-        //noinspection OptionalGetWithoutIsPresent
         return guiceVaadin.assemble(errorViewClass);
     }
 }

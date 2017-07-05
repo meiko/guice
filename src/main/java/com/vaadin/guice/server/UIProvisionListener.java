@@ -1,5 +1,7 @@
 package com.vaadin.guice.server;
 
+import com.google.inject.Binding;
+import com.google.inject.matcher.AbstractMatcher;
 import com.google.inject.spi.ProvisionListener;
 
 import com.vaadin.guice.annotation.GuiceUI;
@@ -17,12 +19,12 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.vaadin.guice.server.ReflectionUtils.findErrorView;
 import static java.lang.String.format;
 
-final class NavigatorManager implements ProvisionListener {
+final class UIProvisionListener extends AbstractMatcher<Binding<?>> implements ProvisionListener {
 
     private final Optional<ErrorViewProvider> optionalErrorViewProvider;
     private final GuiceVaadin guiceVaadin;
 
-    NavigatorManager(GuiceVaadin guiceVaadin) {
+    UIProvisionListener(GuiceVaadin guiceVaadin) {
         final Optional<Class<? extends View>> optionalErrorViewClass = findErrorView(guiceVaadin.getViews());
 
         optionalErrorViewProvider = optionalErrorViewClass.map(errorViewClass -> new ErrorViewProvider(guiceVaadin, errorViewClass));
@@ -31,8 +33,33 @@ final class NavigatorManager implements ProvisionListener {
     }
 
     @Override
+    public boolean matches(Binding<?> binding) {
+        final Class<?> rawType = binding.getKey().getTypeLiteral().getRawType();
+
+        return UI.class.isAssignableFrom(rawType) && rawType.isAnnotationPresent(GuiceUI.class);
+    }
+
+    @Override
     public <T> void onProvision(ProvisionInvocation<T> provision) {
-        UI ui = (UI)provision.provision();
+
+        final UI ui;
+
+        final UIScoper uiScoper = guiceVaadin.getUiScoper();
+
+        //noinspection SynchronizationOnLocalVariableOrMethodParameter
+        synchronized (uiScoper) {
+            try {
+                uiScoper.startInitialization();
+
+                ui = (UI)provision.provision();
+
+                uiScoper.endInitialization(ui);
+
+            } catch (RuntimeException e) {
+                uiScoper.rollbackInitialization();
+                throw e;
+            }
+        }
 
         final Class<? extends UI> uiClass = ui.getClass();
 

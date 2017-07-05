@@ -99,19 +99,6 @@ class GuiceUIProvider extends UIProvider {
 
     @Override
     public UI createInstance(UICreateEvent event) {
-        synchronized (guiceVaadin) {
-            try {
-                guiceVaadin.getUiScoper().startInitialization();
-
-                UI instance = guiceVaadin.assemble(event.getUIClass());
-
-                guiceVaadin.getUiScoper().endInitialization(instance);
-
-                return instance;
-            } catch (RuntimeException e) {
-                guiceVaadin.getUiScoper().rollbackInitialization();
-                throw e;
-            }
-        }
+        return guiceVaadin.assemble(event.getUIClass());
     }
 }

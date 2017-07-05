@@ -10,11 +10,11 @@ import java.util.Iterator;
 
 import static com.google.common.collect.Iterators.concat;
 
-public class GuiceVaadinServletService extends VaadinServletService{
+public class GuiceVaadinServletService extends VaadinServletService {
 
     private final GuiceVaadin guiceVaadin;
 
-    public GuiceVaadinServletService(VaadinServlet servlet, DeploymentConfiguration deploymentConfiguration, GuiceVaadin guiceVaadin) throws ServiceException {
+    GuiceVaadinServletService(VaadinServlet servlet, DeploymentConfiguration deploymentConfiguration, GuiceVaadin guiceVaadin) throws ServiceException {
         super(servlet, deploymentConfiguration);
         this.guiceVaadin = guiceVaadin;
     }

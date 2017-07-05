@@ -44,6 +44,8 @@ class VaadinModule extends AbstractModule {
 
         guiceVaadin.getViews().forEach(view -> viewMultibinder.addBinding().to(view));
 
-        bindListener(new GuiceUIBindingMatcher(), new NavigatorManager(guiceVaadin));
+        UIProvisionListener uiProvisionListener = new UIProvisionListener(guiceVaadin);
+
+        bindListener(uiProvisionListener, uiProvisionListener);
     }
 }
