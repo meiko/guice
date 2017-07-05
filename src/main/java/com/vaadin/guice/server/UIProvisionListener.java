@@ -42,25 +42,12 @@ final class UIProvisionListener extends AbstractMatcher<Binding<?>> implements P
     @Override
     public <T> void onProvision(ProvisionInvocation<T> provision) {
 
-        final UI ui;
+        final UI ui = createUI(provision);
 
-        final UIScoper uiScoper = guiceVaadin.getUiScoper();
+        addNavigatorOptionally(ui);
+    }
 
-        //noinspection SynchronizationOnLocalVariableOrMethodParameter
-        synchronized (uiScoper) {
-            try {
-                uiScoper.startInitialization();
-
-                ui = (UI)provision.provision();
-
-                uiScoper.endInitialization(ui);
-
-            } catch (RuntimeException e) {
-                uiScoper.rollbackInitialization();
-                throw e;
-            }
-        }
-
+    private void addNavigatorOptionally(UI ui) {
         final Class<? extends UI> uiClass = ui.getClass();
 
         GuiceUI annotation = uiClass.getAnnotation(GuiceUI.class);
@@ -111,5 +98,28 @@ final class UIProvisionListener extends AbstractMatcher<Binding<?>> implements P
         navigator.addProvider(guiceVaadin.getViewProvider());
 
         ui.setNavigator(navigator);
+    }
+
+    private <T> UI createUI(ProvisionInvocation<T> provision) {
+        final UI ui;
+
+        final UIScoper uiScoper = guiceVaadin.getUiScoper();
+
+        //noinspection SynchronizationOnLocalVariableOrMethodParameter
+        synchronized (uiScoper) {
+            try {
+                uiScoper.startInitialization();
+
+                ui = (UI)provision.provision();
+
+                uiScoper.endInitialization(ui);
+
+            } catch (RuntimeException e) {
+                uiScoper.rollbackInitialization();
+                throw e;
+            }
+        }
+
+        return ui;
     }
 }
