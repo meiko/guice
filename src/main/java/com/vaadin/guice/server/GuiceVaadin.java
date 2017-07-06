@@ -4,6 +4,7 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
 
+import com.vaadin.guice.annotation.GuiceView;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
@@ -25,6 +26,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
@@ -38,6 +40,7 @@ import static com.vaadin.guice.server.ReflectionUtils.getGuiceViewClasses;
 import static com.vaadin.guice.server.ReflectionUtils.getModulesFromAnnotations;
 import static com.vaadin.guice.server.ReflectionUtils.getStaticModules;
 import static com.vaadin.guice.server.ReflectionUtils.getViewChangeListenerClasses;
+import static java.lang.String.format;
 
 /**
  * this class holds most of the logic that glues guice and vaadin together
@@ -87,6 +90,8 @@ class GuiceVaadin implements SessionInitListener, Provider<Injector> {
             Annotation[] annotations
     ) throws ReflectiveOperationException {
 
+        logWarningsIfNecessary(reflections);
+
         Collection<Module> modulesFromAnnotations = getModulesFromAnnotations(annotations, reflections, this);
 
         final List<Module> modulesFromGuiceVaadinConfiguration = getStaticModules(modules, reflections, this);
@@ -126,6 +131,14 @@ class GuiceVaadin implements SessionInitListener, Provider<Injector> {
         Module combinedModule = combine(vaadinModule, dynamicAndStaticModules);
 
         this.injector = createInjector(combinedModule);
+    }
+
+    private void logWarningsIfNecessary(Reflections reflections) {
+        for (Class<? extends View> viewClass : reflections.getSubTypesOf(View.class)) {
+            if(!viewClass.isAnnotationPresent(GuiceView.class)){
+                Logger.getGlobal().warning(format("%s implements View but has no GuiceView-annotation, will not be navigable", viewClass));
+            }
+        }
     }
 
     @Override
