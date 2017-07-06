@@ -2,9 +2,9 @@ package com.vaadin.guice.testClasses;
 
 import com.google.inject.AbstractModule;
 
-import com.vaadin.guice.annotation.UIModule;
+import com.vaadin.guice.annotation.OverrideBindings;
 
-@UIModule
+@OverrideBindings
 public class DynamicallyLoadedModule extends AbstractModule {
     @Override
     protected void configure() {

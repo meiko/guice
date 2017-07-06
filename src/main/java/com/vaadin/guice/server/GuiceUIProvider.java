@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.vaadin.guice.server.PathUtil.extractUIPathFromRequest;
 import static com.vaadin.guice.server.PathUtil.preparePath;
@@ -42,10 +43,7 @@ class GuiceUIProvider extends UIProvider {
 
             GuiceUI annotation = uiClass.getAnnotation(GuiceUI.class);
 
-            if (annotation == null) {
-                logger.log(Level.WARNING, "ignoring {0}, because it has no @GuiceUI annotation", new Object[]{uiClass});
-                continue;
-            }
+            checkArgument(annotation != null, "%s needs a GuiceUI-annotation");
 
             String path = annotation.path();
             path = preparePath(path);

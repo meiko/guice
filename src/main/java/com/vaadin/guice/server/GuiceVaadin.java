@@ -4,7 +4,7 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
 
-import com.vaadin.guice.annotation.GuiceView;
+import com.vaadin.guice.annotation.OverrideBindings;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
@@ -21,12 +21,11 @@ import com.vaadin.ui.UI;
 import org.reflections.Reflections;
 
 import java.lang.annotation.Annotation;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Logger;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
@@ -34,13 +33,9 @@ import static com.google.common.collect.Iterables.concat;
 import static com.google.inject.Guice.createInjector;
 import static com.google.inject.util.Modules.combine;
 import static com.google.inject.util.Modules.override;
-import static com.vaadin.guice.server.ReflectionUtils.getDynamicModules;
-import static com.vaadin.guice.server.ReflectionUtils.getGuiceUIClasses;
-import static com.vaadin.guice.server.ReflectionUtils.getGuiceViewClasses;
-import static com.vaadin.guice.server.ReflectionUtils.getModulesFromAnnotations;
-import static com.vaadin.guice.server.ReflectionUtils.getStaticModules;
 import static com.vaadin.guice.server.ReflectionUtils.getViewChangeListenerClasses;
-import static java.lang.String.format;
+import static com.vaadin.guice.server.ReflectionUtils.loadModulesFromAnnotations;
+import static com.vaadin.guice.server.ReflectionUtils.loadModulesFromPath;
 
 /**
  * this class holds most of the logic that glues guice and vaadin together
@@ -62,7 +57,7 @@ class GuiceVaadin implements SessionInitListener, Provider<Injector> {
     private final Set<Class<? extends VaadinServiceInitListener>> vaadinServiceInitListeners;
 
     //used for non-testing
-    GuiceVaadin(Reflections reflections, Class<? extends Module>[] modules, Annotation[] annotations) throws ReflectiveOperationException {
+    GuiceVaadin(Reflections reflections, Annotation[] annotations) throws ReflectiveOperationException {
         this(
                 VaadinSession::getCurrent,
                 UI::getCurrent,
@@ -75,7 +70,6 @@ class GuiceVaadin implements SessionInitListener, Provider<Injector> {
                 },
                 VaadinService::getCurrent,
                 reflections,
-                modules,
                 annotations
         );
     }
@@ -86,30 +80,39 @@ class GuiceVaadin implements SessionInitListener, Provider<Injector> {
             Provider<View> currentViewProvider,
             Provider<VaadinService> vaadinServiceProvider,
             Reflections reflections,
-            Class<? extends Module>[] modules,
             Annotation[] annotations
     ) throws ReflectiveOperationException {
 
-        logWarningsIfNecessary(reflections);
+        final Set<Module> modulesFromAnnotations = loadModulesFromAnnotations(annotations, reflections, this);
 
-        Collection<Module> modulesFromAnnotations = getModulesFromAnnotations(annotations, reflections, this);
+        final Set<Module> modulesFromPath = loadModulesFromPath(reflections, this, modulesFromAnnotations);
 
-        final List<Module> modulesFromGuiceVaadinConfiguration = getStaticModules(modules, reflections, this);
+        Iterable<Module> allModules = concat(
+                modulesFromAnnotations,
+                modulesFromPath
+        );
 
-        final Module staticPart = combine(concat(modulesFromAnnotations, modulesFromGuiceVaadinConfiguration));
+        List<Module> nonOverrideModules = new ArrayList<>();
+        List<Module> overrideModules = new ArrayList<>();
 
-        final Set<Module> dynamicPart = getDynamicModules(reflections, this);
+        for (Module module : allModules) {
+            if (module.getClass().isAnnotationPresent(OverrideBindings.class)) {
+                overrideModules.add(module);
+            } else {
+                nonOverrideModules.add(module);
+            }
+        }
 
         /*
          * combine bindings from the static modules in {@link GuiceVaadinConfiguration#modules()} with those bindings
          * from dynamically loaded modules, see {@link RuntimeModule}.
          * This is done first so modules can install their own reflections.
         */
-        Module dynamicAndStaticModules = override(staticPart).with(dynamicPart);
+        Module dynamicAndStaticModules = override(nonOverrideModules).with(overrideModules);
 
-        Set<Class<? extends View>> views = getGuiceViewClasses(reflections);
+        Set<Class<? extends View>> views = reflections.getSubTypesOf(View.class);
 
-        this.uis = getGuiceUIClasses(reflections);
+        this.uis = reflections.getSubTypesOf(UI.class);
         this.viewChangeListeners = getViewChangeListenerClasses(reflections, uis);
         this.vaadinServiceInitListeners = reflections.getSubTypesOf(VaadinServiceInitListener.class);
         this.vaadinSessionProvider = vaadinSessionProvider;
@@ -131,14 +134,6 @@ class GuiceVaadin implements SessionInitListener, Provider<Injector> {
         Module combinedModule = combine(vaadinModule, dynamicAndStaticModules);
 
         this.injector = createInjector(combinedModule);
-    }
-
-    private void logWarningsIfNecessary(Reflections reflections) {
-        for (Class<? extends View> viewClass : reflections.getSubTypesOf(View.class)) {
-            if(!viewClass.isAnnotationPresent(GuiceView.class)){
-                Logger.getGlobal().warning(format("%s implements View but has no GuiceView-annotation, will not be navigable", viewClass));
-            }
-        }
     }
 
     @Override
@@ -172,8 +167,6 @@ class GuiceVaadin implements SessionInitListener, Provider<Injector> {
         service.addSessionInitListener(uiScoper);
         service.addSessionDestroyListener(viewScoper);
         service.addSessionInitListener(viewScoper);
-        service.addSessionDestroyListener(viewProvider);
-        service.addSessionInitListener(viewProvider);
         service.addSessionDestroyListener(vaadinSessionScoper);
     }
 

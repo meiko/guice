@@ -4,10 +4,7 @@ import com.google.inject.Module;
 
 import com.vaadin.guice.annotation.ForUI;
 import com.vaadin.guice.annotation.GuiceUI;
-import com.vaadin.guice.annotation.GuiceView;
 import com.vaadin.guice.annotation.Import;
-import com.vaadin.guice.annotation.UIModule;
-import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.UI;
@@ -17,40 +14,32 @@ import org.reflections.Reflections;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 
 final class ReflectionUtils {
 
     private ReflectionUtils() {
     }
 
-    static Collection<Module> getModulesFromAnnotations(Annotation[] annotations, Reflections reflections, GuiceVaadin guiceVaadin)
-            throws IllegalAccessException, InstantiationException, InvocationTargetException {
-        Collection<Module> modules = new ArrayList<>();
-
-        for (Annotation annotation : annotations) {
-            final Module module = createIfModuleToCreate(annotation);
-
-            if (module != null) {
-                postProcess(reflections, guiceVaadin, module);
-                modules.add(module);
-            }
-        }
-
-        return modules;
+    static Set<Module> loadModulesFromAnnotations(Annotation[] annotations, Reflections reflections, GuiceVaadin guiceVaadin) {
+        return stream(annotations)
+                .map(ReflectionUtils::createIfModuleToCreate)
+                .filter(Objects::nonNull)
+                .map(module -> postProcess(reflections, guiceVaadin, module))
+                .collect(toSet());
     }
 
     @SuppressWarnings("unchecked")
-    private static Module createIfModuleToCreate(Annotation annotation) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    private static Module createIfModuleToCreate(Annotation annotation) {
 
         checkNotNull(annotation);
 
@@ -82,18 +71,23 @@ final class ReflectionUtils {
             throw new IllegalArgumentException("no suitable constructor found for " + moduleClass);
         } catch (NoSuchMethodException e) {
             return null;
+        } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    private static Module createIfModuleToCreate(Class<? extends Module> type, Reflections reflections, final GuiceVaadin guiceVaadin) throws ReflectiveOperationException {
-        final Module module = type.newInstance();
+    private static Module create(Class<? extends Module> type, Reflections reflections, final GuiceVaadin guiceVaadin) {
+        final Module module;
+        try {
+            module = type.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
 
-        postProcess(reflections, guiceVaadin, module);
-
-        return module;
+        return postProcess(reflections, guiceVaadin, module);
     }
 
-    private static void postProcess(Reflections reflections, GuiceVaadin guiceVaadin, Module module) {
+    private static Module postProcess(Reflections reflections, GuiceVaadin guiceVaadin, Module module) {
         if (module instanceof NeedsReflections) {
             ((NeedsReflections) module).setReflections(reflections);
         }
@@ -101,63 +95,23 @@ final class ReflectionUtils {
         if (module instanceof NeedsInjector) {
             ((NeedsInjector) module).setInjectorProvider(guiceVaadin);
         }
-    }
 
-    static List<Module> getStaticModules(Class<? extends Module>[] modules, Reflections reflections, GuiceVaadin guiceVaadin) throws ReflectiveOperationException {
-        List<Module> hardWiredModules = new ArrayList<>(modules.length);
-
-        for (Class<? extends Module> moduleClass : modules) {
-            hardWiredModules.add(createIfModuleToCreate(moduleClass, reflections, guiceVaadin));
-        }
-        return hardWiredModules;
+        return module;
     }
 
     @SuppressWarnings("unchecked")
-    static Set<Module> getDynamicModules(Reflections reflections, GuiceVaadin guiceVaadin) throws ReflectiveOperationException {
-        Set<Module> dynamicallyLoadedModules = new HashSet<>();
+    static Set<Module> loadModulesFromPath(Reflections reflections, GuiceVaadin guiceVaadin, Set<Module> modulesFromAnnotations) throws ReflectiveOperationException {
+        Set<Class<? extends Module>> modulesFromAnnotationClasses = modulesFromAnnotations
+                .stream()
+                .map(Module::getClass)
+                .collect(toSet());
 
-        for (Class<?> dynamicallyLoadedModuleClass : reflections.getTypesAnnotatedWith(UIModule.class, true)) {
-            checkArgument(
-                    Module.class.isAssignableFrom(dynamicallyLoadedModuleClass),
-                    "class %s is annotated with @UIModule but does not implement com.google.inject.Module",
-                    dynamicallyLoadedModuleClass
-            );
-
-            dynamicallyLoadedModules.add(createIfModuleToCreate((Class<? extends Module>) dynamicallyLoadedModuleClass, reflections, guiceVaadin));
-        }
-        return dynamicallyLoadedModules;
-    }
-
-    @SuppressWarnings("unchecked")
-    static Set<Class<? extends View>> getGuiceViewClasses(Reflections reflections) {
-        Set<Class<? extends View>> views = new HashSet<>();
-
-        for (Class<?> viewClass : reflections.getTypesAnnotatedWith(GuiceView.class)) {
-            checkArgument(
-                    View.class.isAssignableFrom(viewClass),
-                    "class %s is annotated with @GuiceView but does not implement com.vaadin.navigator.View",
-                    viewClass
-            );
-
-            views.add((Class<? extends View>) viewClass);
-        }
-        return views;
-    }
-
-    @SuppressWarnings("unchecked")
-    static Set<Class<? extends UI>> getGuiceUIClasses(Reflections reflections) {
-        Set<Class<? extends UI>> uis = new HashSet<>();
-
-        for (Class<?> uiClass : reflections.getTypesAnnotatedWith(GuiceUI.class)) {
-            checkArgument(
-                    UI.class.isAssignableFrom(uiClass),
-                    "class %s is annotated with @GuiceUI but does not extend com.vaadin.UI",
-                    uiClass
-            );
-
-            uis.add((Class<? extends UI>) uiClass);
-        }
-        return uis;
+        return reflections
+                .getSubTypesOf(Module.class)
+                .stream()
+                .filter(moduleClass -> !modulesFromAnnotationClasses.contains(moduleClass))
+                .map(moduleClass -> create(moduleClass, reflections, guiceVaadin))
+                .collect(toSet());
     }
 
     @SuppressWarnings("unchecked")

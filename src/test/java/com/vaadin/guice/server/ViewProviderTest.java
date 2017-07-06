@@ -39,7 +39,6 @@ public class ViewProviderTest {
                 currentViewProvider,
                 vaadinServiceProvider,
                 reflections,
-                new Class[0],
                 new Annotation[0]
         );
 

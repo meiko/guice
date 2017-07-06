@@ -13,7 +13,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * The module needs to have a standard-constructor or a constructor accepting
  * the annotated Annotation as only parameter. If both constructors are present, the
  * one accepting the annotation will be used. The module will then be installed in the
- * guice-context the same way as if it was listed in {@link Configuration#modules()}.
+ * guice-context the same way as if it was listed in {@link PackagesToScan#modules()}.
  *
  * <pre>
  * &#064;Import(MyModule.class)
@@ -37,7 +37,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * }
  *
  * &#064;MyCreationAnnotation(databaseToUse = "my-database-connection-name")
- * &#064;Configuration(basePackages = "com.test")
+ * &#064;PackagesToScan(basePackages = "com.test")
  * public class MyServlet extends GuiceVaadinServlet{
  *  //guice-context will have MyModule with databaseToUse = my-database-connection-name installed
  * }

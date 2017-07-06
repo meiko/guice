@@ -81,6 +81,7 @@ public @interface GuiceUI {
 
     /**
      * the error-provider
+     *
      * @see Navigator#setErrorProvider(ViewProvider)
      */
     Class<? extends ViewProvider> errorProvider() default ViewProvider.class;

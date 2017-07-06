@@ -20,7 +20,7 @@ public class ViewScopeTest extends ScopeTestBase {
         return (GuiceVaadin) field.get(servlet);
     }
 
-    @Configuration(modules = {}, basePackages = "com.vaadin.guice.testClasses")
+    @PackagesToScan(modules = {}, basePackages = "com.vaadin.guice.testClasses")
     private static class VaadinServletWithDynamicLoadedModule extends GuiceVaadinServlet {
     }
 }*/

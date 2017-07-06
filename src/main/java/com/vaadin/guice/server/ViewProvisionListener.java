@@ -30,7 +30,7 @@ final class ViewProvisionListener extends AbstractMatcher<Binding<?>> implements
             try {
                 viewScoper.startInitialization();
 
-                viewScoper.endInitialization((View)provision.provision());
+                viewScoper.endInitialization((View) provision.provision());
 
             } catch (RuntimeException e) {
                 viewScoper.rollbackInitialization();

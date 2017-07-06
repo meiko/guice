@@ -81,13 +81,13 @@ final class UIProvisionListener extends AbstractMatcher<Binding<?>> implements P
             );
         }
 
-        if(!annotation.errorProvider().equals(ViewProvider.class)){
+        if (!annotation.errorProvider().equals(ViewProvider.class)) {
             checkArgument(annotation.errorView().equals(View.class), "GuiceUI#errorView and GuiceUI#errorProvider cannot be set both");
 
             final ViewProvider errorProvider = guiceVaadin.getInjector().getInstance(annotation.errorProvider());
 
             navigator.setErrorProvider(errorProvider);
-        } else if(!annotation.errorView().equals(View.class)){
+        } else if (!annotation.errorView().equals(View.class)) {
             navigator.setErrorView(annotation.errorView());
         }
 

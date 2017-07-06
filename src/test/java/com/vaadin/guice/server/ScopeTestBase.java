@@ -1,6 +1,5 @@
 package com.vaadin.guice.server;
 
-import com.google.inject.Module;
 import com.google.inject.Provider;
 
 import com.vaadin.guice.testClasses.Target;
@@ -39,15 +38,12 @@ public abstract class ScopeTestBase {
 
         Reflections reflections = new Reflections("com.vaadin.guice.server.testClasses");
 
-        Class<? extends Module>[] modules = new Class[]{};
-
         guiceVaadin = new GuiceVaadin(
                 vaadinSessionProvider,
                 currentUIProvider,
                 currentViewProvider,
                 vaadinServiceProvider,
                 reflections,
-                modules,
                 new Annotation[0]
         );
     }

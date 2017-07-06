@@ -3,7 +3,6 @@ package com.vaadin.guice.server;
 import com.google.inject.AbstractModule;
 import com.google.inject.multibindings.Multibinder;
 
-import com.vaadin.guice.annotation.AllKnownGuiceViews;
 import com.vaadin.guice.annotation.GuiceUI;
 import com.vaadin.guice.annotation.GuiceView;
 import com.vaadin.guice.annotation.UIScope;
@@ -40,7 +39,7 @@ class VaadinModule extends AbstractModule {
         bind(UI.class).toProvider(guiceVaadin.getCurrentUIProvider());
         bind(VaadinService.class).toProvider(guiceVaadin.getVaadinServiceProvider());
 
-        final Multibinder<View> viewMultibinder = newSetBinder(binder(), View.class, AllKnownGuiceViews.class);
+        final Multibinder<View> viewMultibinder = newSetBinder(binder(), View.class);
 
         guiceVaadin.getViews().forEach(view -> viewMultibinder.addBinding().to(view));
 

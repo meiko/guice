@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
 import static com.vaadin.guice.server.PathUtil.removeParametersFromViewName;
 
 /**
@@ -42,7 +41,7 @@ class GuiceViewProvider implements ViewProvider {
 
             GuiceView annotation = viewClass.getAnnotation(GuiceView.class);
 
-            checkState(annotation != null);
+            checkArgument(annotation != null, "GuiceView-annotation missing at %s", viewClass);
 
             viewMapBuilder.put(annotation.value(), viewClass);
         }
