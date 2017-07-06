@@ -7,11 +7,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * Annotation that adds a ViewChangeListener to every {@see com.vaadin.navigation.Navigator} created
- * by guice-vaadin via {@see ViewContainer}.
- *
+ * Annotation that adds a ViewChangeListener to only a restricted set of {@link UI}'s.
+ *If this annotation is not present, the ViewChangeListener will be attached to all UI's
  * <pre>
- * &#064;ForUI(uis = MyUI.class) // will only be attached to MyUI
+ * &#064;ForUI(MyUI.class) // will only be attached to MyUI
  * public class MyViewChangeListener implements ViewChangeListener{
  *    boolean beforeViewChange(ViewChangeListener.ViewChangeEvent event){
  *        //before a view change
@@ -31,8 +30,7 @@ import java.lang.annotation.Target;
 public @interface ForUI {
 
     /**
-     * A list of {@link UI}'s that the ViewChangeListener will be attached to. If not set, the
-     * ViewChangeListener will be attached to all UI's
+     * A list of {@link UI}'s that the ViewChangeListener will be attached to.
      */
     Class<? extends UI>[] value();
 }
