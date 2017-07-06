@@ -4,13 +4,11 @@ import com.google.inject.Module;
 
 import com.vaadin.guice.annotation.ForUI;
 import com.vaadin.guice.annotation.GuiceUI;
-import com.vaadin.guice.annotation.GuiceVaadinServiceInitListener;
 import com.vaadin.guice.annotation.GuiceView;
 import com.vaadin.guice.annotation.Import;
 import com.vaadin.guice.annotation.UIModule;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.server.VaadinServiceInitListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.UI;
 
@@ -21,17 +19,14 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
-import static java.util.Collections.EMPTY_SET;
+import static java.util.stream.Collectors.toMap;
 
 final class ReflectionUtils {
 
@@ -168,7 +163,9 @@ final class ReflectionUtils {
     @SuppressWarnings("unchecked")
     static Map<Class<? extends UI>, Set<Class<? extends ViewChangeListener>>> getViewChangeListenerClasses(Reflections reflections, Set<Class<? extends UI>> uiClasses) {
 
-        Map<Class<? extends UI>, Set<Class<? extends ViewChangeListener>>> viewChangeListenersByUI = new HashMap<>(uiClasses.size());
+        Map<Class<? extends UI>, Set<Class<? extends ViewChangeListener>>> viewChangeListenersByUI = uiClasses
+                .stream()
+                .collect(toMap(uiClass -> uiClass, uiClass -> new HashSet<>()));
 
         for (Class<? extends UI> uiClass : uiClasses) {
             viewChangeListenersByUI.put(uiClass, new HashSet<>());
@@ -179,9 +176,7 @@ final class ReflectionUtils {
             final ForUI annotation = viewChangeListenerClass.getAnnotation(ForUI.class);
 
             if (annotation == null) {
-                for (Set<Class<? extends ViewChangeListener>> viewChangeListenersForUI : viewChangeListenersByUI.values()) {
-                    viewChangeListenersForUI.add(viewChangeListenerClass);
-                }
+                viewChangeListenersByUI.values().forEach(listeners -> listeners.add(viewChangeListenerClass));
             } else {
                 checkArgument(annotation.value().length > 0, "ForUI#value must contain one ore more UI-classes");
 
@@ -203,53 +198,6 @@ final class ReflectionUtils {
         }
 
         return viewChangeListenersByUI;
-    }
-
-    static Optional<Class<? extends View>> findErrorView(Iterable<Class<? extends View>> viewClasses) {
-
-        Class<? extends View> errorView = null;
-
-        for (Class<? extends View> viewClass : viewClasses) {
-            GuiceView annotation = viewClass.getAnnotation(GuiceView.class);
-
-            checkState(annotation != null);
-
-            if (annotation.isErrorView()) {
-                checkState(
-                        errorView == null,
-                        "%s and %s have an @GuiceView-annotation with isErrorView set to true",
-                        errorView,
-                        viewClass
-                );
-
-                errorView = viewClass;
-            }
-        }
-
-        return Optional.ofNullable(errorView);
-    }
-
-    @SuppressWarnings("unchecked")
-    static Set<Class<? extends VaadinServiceInitListener>> getVaadinServiceInitListeners(Reflections reflections) {
-        final Set<Class<?>> classes = reflections.getTypesAnnotatedWith(GuiceVaadinServiceInitListener.class);
-
-        if (classes == null || classes.isEmpty()) {
-            return EMPTY_SET;
-        }
-
-        Set<Class<? extends VaadinServiceInitListener>> vaadinServiceInitListenerClasses = new HashSet<>(classes.size());
-
-        for (Class<?> aClass : classes) {
-            checkState(
-                    VaadinServiceInitListener.class.isAssignableFrom(aClass),
-                    "%s is annotated with @GuiceVaadinServiceInitListener but does not implement VaadinServiceInitListener",
-                    aClass
-            );
-
-            vaadinServiceInitListenerClasses.add((Class<? extends VaadinServiceInitListener>) aClass);
-        }
-
-        return vaadinServiceInitListenerClasses;
     }
 }
 

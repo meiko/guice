@@ -37,7 +37,6 @@ import static com.vaadin.guice.server.ReflectionUtils.getGuiceUIClasses;
 import static com.vaadin.guice.server.ReflectionUtils.getGuiceViewClasses;
 import static com.vaadin.guice.server.ReflectionUtils.getModulesFromAnnotations;
 import static com.vaadin.guice.server.ReflectionUtils.getStaticModules;
-import static com.vaadin.guice.server.ReflectionUtils.getVaadinServiceInitListeners;
 import static com.vaadin.guice.server.ReflectionUtils.getViewChangeListenerClasses;
 
 /**
@@ -107,7 +106,7 @@ class GuiceVaadin implements SessionInitListener, Provider<Injector> {
 
         this.uis = getGuiceUIClasses(reflections);
         this.viewChangeListeners = getViewChangeListenerClasses(reflections, uis);
-        this.vaadinServiceInitListeners = getVaadinServiceInitListeners(reflections);
+        this.vaadinServiceInitListeners = reflections.getSubTypesOf(VaadinServiceInitListener.class);
         this.vaadinSessionProvider = vaadinSessionProvider;
         this.currentUIProvider = currentUIProvider;
         this.vaadinServiceProvider = vaadinServiceProvider;

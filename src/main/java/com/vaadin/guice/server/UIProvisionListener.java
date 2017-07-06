@@ -8,27 +8,21 @@ import com.vaadin.guice.annotation.GuiceUI;
 import com.vaadin.guice.annotation.UIScope;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewDisplay;
+import com.vaadin.navigator.ViewProvider;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.ComponentContainer;
 import com.vaadin.ui.SingleComponentContainer;
 import com.vaadin.ui.UI;
 
-import java.util.Optional;
-
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
-import static com.vaadin.guice.server.ReflectionUtils.findErrorView;
 import static java.lang.String.format;
 
 final class UIProvisionListener extends AbstractMatcher<Binding<?>> implements ProvisionListener {
 
-    private final Optional<ErrorViewProvider> optionalErrorViewProvider;
     private final GuiceVaadin guiceVaadin;
 
     UIProvisionListener(GuiceVaadin guiceVaadin) {
-        final Optional<Class<? extends View>> optionalErrorViewClass = findErrorView(guiceVaadin.getViews());
-
-        optionalErrorViewProvider = optionalErrorViewClass.map(errorViewClass -> new ErrorViewProvider(guiceVaadin, errorViewClass));
-
         this.guiceVaadin = guiceVaadin;
     }
 
@@ -87,7 +81,15 @@ final class UIProvisionListener extends AbstractMatcher<Binding<?>> implements P
             );
         }
 
-        optionalErrorViewProvider.ifPresent(navigator::setErrorProvider);
+        if(!annotation.errorProvider().equals(ViewProvider.class)){
+            checkArgument(annotation.errorView().equals(View.class), "GuiceUI#errorView and GuiceUI#errorProvider cannot be set both");
+
+            final ViewProvider errorProvider = guiceVaadin.getInjector().getInstance(annotation.errorProvider());
+
+            navigator.setErrorProvider(errorProvider);
+        } else if(!annotation.errorView().equals(View.class)){
+            navigator.setErrorView(annotation.errorView());
+        }
 
         guiceVaadin
                 .getViewChangeListeners(uiClass)

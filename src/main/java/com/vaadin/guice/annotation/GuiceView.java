@@ -43,9 +43,4 @@ public @interface GuiceView {
      * view names are supported, using explicit naming of views is strongly recommended.
      */
     String name() default USE_CONVENTIONS;
-
-    /*
-    * determining if this view is navigated to in case an error occurs.
-    * */
-    boolean isErrorView() default false;
 }
