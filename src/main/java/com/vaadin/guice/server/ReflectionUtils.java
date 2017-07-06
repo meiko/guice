@@ -193,9 +193,9 @@ final class ReflectionUtils {
                             "%s is listed as applicableUi in the @ForUI-annotation of %s, but is not annotated with @GuiceUI"
                     );
 
-                    final boolean viewContainerSet = !applicableUiClass.getAnnotation(GuiceUI.class).viewContainer().equals(Component.class);
+                    final Class<? extends Component> viewContainer = applicableUiClass.getAnnotation(GuiceUI.class).viewContainer();
 
-                    checkArgument(viewContainerSet, "%s is annotated as @ForUI for %s, however viewContainer() is not set in @GuiceUI");
+                    checkArgument(!viewContainer.equals(Component.class), "%s is annotated as @ForUI for %s, however viewContainer() is not set in @GuiceUI");
 
                     viewChangeListenersForUI.add(viewChangeListenerClass);
                 }
