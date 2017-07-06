@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
  * by guice-vaadin via {@see ViewContainer}.
  *
  * <pre>
- * &#064;GuiceViewChangeListener(uis = MyUI.class) // will only be attached to MyUI
+ * &#064;ForUI(uis = MyUI.class) // will only be attached to MyUI
  * public class MyViewChangeListener implements ViewChangeListener{
  *    boolean beforeViewChange(ViewChangeListener.ViewChangeEvent event){
  *        //before a view change
@@ -28,11 +28,11 @@ import java.lang.annotation.Target;
 @Target({java.lang.annotation.ElementType.TYPE})
 @Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
 @Documented
-public @interface GuiceViewChangeListener {
+public @interface ForUI {
 
     /**
      * A list of {@link UI}'s that the ViewChangeListener will be attached to. If not set, the
      * ViewChangeListener will be attached to all UI's
      */
-    Class<? extends UI>[] applicableUIs() default {};
+    Class<? extends UI>[] value();
 }

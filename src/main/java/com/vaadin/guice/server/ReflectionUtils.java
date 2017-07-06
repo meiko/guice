@@ -2,10 +2,10 @@ package com.vaadin.guice.server;
 
 import com.google.inject.Module;
 
+import com.vaadin.guice.annotation.ForUI;
 import com.vaadin.guice.annotation.GuiceUI;
 import com.vaadin.guice.annotation.GuiceVaadinServiceInitListener;
 import com.vaadin.guice.annotation.GuiceView;
-import com.vaadin.guice.annotation.GuiceViewChangeListener;
 import com.vaadin.guice.annotation.Import;
 import com.vaadin.guice.annotation.UIModule;
 import com.vaadin.navigator.View;
@@ -170,39 +170,34 @@ final class ReflectionUtils {
 
         Map<Class<? extends UI>, Set<Class<? extends ViewChangeListener>>> viewChangeListenersByUI = new HashMap<>(uiClasses.size());
 
-        final Set<Class<?>> allViewChangeListenerClasses = reflections.getTypesAnnotatedWith(GuiceViewChangeListener.class, true);
-
         for (Class<? extends UI> uiClass : uiClasses) {
             viewChangeListenersByUI.put(uiClass, new HashSet<>());
         }
 
-        for (Class<?> viewChangeListenerClass : allViewChangeListenerClasses) {
-            checkArgument(
-                    ViewChangeListener.class.isAssignableFrom(viewChangeListenerClass),
-                    "class %s is annotated with @GuiceViewChangeListener but does not implement com.vaadin.navigator.ViewChangeListener",
-                    viewChangeListenerClass
-            );
+        for (Class<? extends ViewChangeListener> viewChangeListenerClass : reflections.getSubTypesOf(ViewChangeListener.class)) {
 
-            final GuiceViewChangeListener annotation = viewChangeListenerClass.getAnnotation(GuiceViewChangeListener.class);
+            final ForUI annotation = viewChangeListenerClass.getAnnotation(ForUI.class);
 
-            if (annotation.applicableUIs().length == 0) {
+            if (annotation == null) {
                 for (Set<Class<? extends ViewChangeListener>> viewChangeListenersForUI : viewChangeListenersByUI.values()) {
-                    viewChangeListenersForUI.add((Class<? extends ViewChangeListener>) viewChangeListenerClass);
+                    viewChangeListenersForUI.add(viewChangeListenerClass);
                 }
             } else {
-                for (Class<? extends UI> applicableUiClass : annotation.applicableUIs()) {
+                checkArgument(annotation.value().length > 0, "ForUI#value must contain one ore more UI-classes");
+
+                for (Class<? extends UI> applicableUiClass : annotation.value()) {
                     final Set<Class<? extends ViewChangeListener>> viewChangeListenersForUI = viewChangeListenersByUI.get(applicableUiClass);
 
                     checkArgument(
                             viewChangeListenersForUI != null,
-                            "%s is listed as applicableUi in the @GuiceViewChangeListener-annotation of %s, but is not annotated with @GuiceUI"
+                            "%s is listed as applicableUi in the @ForUI-annotation of %s, but is not annotated with @GuiceUI"
                     );
 
                     final boolean viewContainerSet = !applicableUiClass.getAnnotation(GuiceUI.class).viewContainer().equals(Component.class);
 
-                    checkArgument(viewContainerSet, "%s is annotated as @GuiceViewChangeListener for %s, however viewContainer() is not set in @GuiceUI");
+                    checkArgument(viewContainerSet, "%s is annotated as @ForUI for %s, however viewContainer() is not set in @GuiceUI");
 
-                    viewChangeListenersForUI.add((Class<? extends ViewChangeListener>) viewChangeListenerClass);
+                    viewChangeListenersForUI.add(viewChangeListenerClass);
                 }
             }
         }
