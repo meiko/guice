@@ -105,7 +105,6 @@ final class UIProvisionListener extends AbstractMatcher<Binding<?>> implements P
     private <T> UI createUI(ProvisionInvocation<T> provision) {
         final UI ui;
 
-        //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (guiceVaadin) {
             final UIScoper uiScoper = guiceVaadin.getUiScoper();
 

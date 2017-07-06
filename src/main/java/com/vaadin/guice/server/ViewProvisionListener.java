@@ -24,15 +24,13 @@ final class ViewProvisionListener extends AbstractMatcher<Binding<?>> implements
 
     @Override
     public <T> void onProvision(ProvisionInvocation<T> provision) {
-        final ViewScoper viewScoper= guiceVaadin.getViewScoper();
-
         synchronized (guiceVaadin) {
+            final ViewScoper viewScoper = guiceVaadin.getViewScoper();
+
             try {
                 viewScoper.startInitialization();
 
-                View view = (View)provision.provision();
-
-                viewScoper.endInitialization(view);
+                viewScoper.endInitialization((View)provision.provision());
 
             } catch (RuntimeException e) {
                 viewScoper.rollbackInitialization();
