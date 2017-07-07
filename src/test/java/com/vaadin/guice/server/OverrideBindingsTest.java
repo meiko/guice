@@ -10,8 +10,9 @@ import com.vaadin.guice.testClasses.AnotherInterface;
 import com.vaadin.guice.testClasses.AnotherInterfaceImplementation;
 
 import org.junit.Test;
+import org.reflections.Reflections;
 
-import java.lang.reflect.Field;
+import java.lang.annotation.Annotation;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertNotNull;
@@ -21,8 +22,8 @@ import static org.junit.Assert.assertTrue;
 public class OverrideBindingsTest {
 
     @Test
-    public void dynamically_loaded_modules_should_override() throws NoSuchFieldException, IllegalAccessException {
-        GuiceVaadin guiceVaadin = getGuiceVaadin(new VaadinServletWithStaticAndDynamicLoadedModules());
+    public void dynamically_loaded_modules_should_override() throws ReflectiveOperationException {
+        GuiceVaadin guiceVaadin = new GuiceVaadin(new Reflections(ImmutableList.of("com.vaadin.guice.testClasses", "com.vaadin.guice.override", "com.vaadin.guice.nonoverride")), new Annotation[0]);
 
         AnInterface anInterface = guiceVaadin.getInjector().getInstance(AnInterface.class);
 
@@ -36,8 +37,8 @@ public class OverrideBindingsTest {
     }
 
     @Test
-    public void statically_loaded_modules_should_be_considered() throws NoSuchFieldException, IllegalAccessException {
-        GuiceVaadin guiceVaadin = getGuiceVaadin(new VaadinServletWithStaticLoadedModule());
+    public void statically_loaded_modules_should_be_considered() throws ReflectiveOperationException {
+        GuiceVaadin guiceVaadin = new GuiceVaadin(new Reflections(ImmutableList.of("com.vaadin.guice.testClasses", "com.vaadin.guice.nonoverride")), new Annotation[0]);
 
         AnInterface anInterface = guiceVaadin.getInjector().getInstance(AnInterface.class);
 
@@ -51,8 +52,8 @@ public class OverrideBindingsTest {
     }
 
     @Test
-    public void dynamically_loaded_modules_should_be_considered() throws NoSuchFieldException, IllegalAccessException {
-        GuiceVaadin guiceVaadin = getGuiceVaadin(new VaadinServletWithDynamicLoadedModule());
+    public void dynamically_loaded_modules_should_be_considered() throws ReflectiveOperationException {
+        GuiceVaadin guiceVaadin = new GuiceVaadin(new Reflections(ImmutableList.of("com.vaadin.guice.testClasses", "com.vaadin.guice.override")), new Annotation[0]);
 
         AnInterface anInterface = guiceVaadin.getInjector().getInstance(AnInterface.class);
 
@@ -61,36 +62,9 @@ public class OverrideBindingsTest {
     }
 
     @Test(expected = ConfigurationException.class)
-    public void unbound_classes_should_not_be_available() throws NoSuchFieldException, IllegalAccessException {
-        GuiceVaadin guiceVaadin = getGuiceVaadin(new VaadinServletWithDynamicLoadedModule());
+    public void unbound_classes_should_not_be_available() throws ReflectiveOperationException {
+        GuiceVaadin guiceVaadin = new GuiceVaadin(new Reflections(ImmutableList.of("com.vaadin.guice.testClasses", "com.vaadin.guice.override")), new Annotation[0]);
 
         guiceVaadin.getInjector().getInstance(AnotherInterface.class);
-    }
-
-    private GuiceVaadin getGuiceVaadin(GuiceVaadinServlet servlet) throws NoSuchFieldException, IllegalAccessException {
-        final Field field = servlet.getClass().getSuperclass().getDeclaredField("guiceVaadin");
-        field.setAccessible(true);
-        return (GuiceVaadin) field.get(servlet);
-    }
-
-    private static class VaadinServletWithStaticAndDynamicLoadedModules extends GuiceVaadinServlet {
-        @Override
-        protected Iterable<String> packagesToScan() {
-            return ImmutableList.of("com.vaadin.guice.testClasses", "com.vaadin.guice.override", "com.vaadin.guice.nonoverride");
-        }
-    }
-
-    private static class VaadinServletWithStaticLoadedModule extends GuiceVaadinServlet {
-        @Override
-        protected Iterable<String> packagesToScan() {
-            return ImmutableList.of("com.vaadin.guice.testClasses", "com.vaadin.guice.nonoverride");
-        }
-    }
-
-    private static class VaadinServletWithDynamicLoadedModule extends GuiceVaadinServlet {
-        @Override
-        protected Iterable<String> packagesToScan() {
-            return ImmutableList.of("com.vaadin.guice.testClasses", "com.vaadin.guice.override");
-        }
     }
 }

@@ -12,7 +12,6 @@ import com.vaadin.server.DefaultUIProvider;
 import com.vaadin.server.ServiceException;
 import com.vaadin.server.SessionInitEvent;
 import com.vaadin.server.SessionInitListener;
-import com.vaadin.server.UIProvider;
 import com.vaadin.server.VaadinService;
 import com.vaadin.server.VaadinServiceInitListener;
 import com.vaadin.server.VaadinSession;
@@ -143,31 +142,12 @@ class GuiceVaadin implements SessionInitListener, Provider<Injector> {
         // class in a UI class
         VaadinSession session = event.getSession();
 
-        final String DefaultUiProviderCanonicalName = DefaultUIProvider.class.getCanonicalName();
-
-        for (UIProvider uiProvider : session.getUIProviders()) {
-            // use canonical names as these may have been loaded with
-            // different classloaders
-            if (DefaultUiProviderCanonicalName.equals(uiProvider.getClass().getCanonicalName())) {
-                session.removeUIProvider(uiProvider);
-            }
-        }
+        session
+            .getUIProviders()
+            .removeIf(uiProvider -> uiProvider instanceof DefaultUIProvider);
 
         //set the GuiceUIProvider
-        session.addUIProvider(this.guiceUIProvider);
-    }
-
-    void vaadinInitialized() {
-        VaadinService service = vaadinServiceProvider.get();
-
-        //this glues guice to vaadin
-        service.addSessionInitListener(this);
-
-        service.addSessionDestroyListener(uiScoper);
-        service.addSessionInitListener(uiScoper);
-        service.addSessionDestroyListener(viewScoper);
-        service.addSessionInitListener(viewScoper);
-        service.addSessionDestroyListener(vaadinSessionScoper);
+        session.addUIProvider(guiceUIProvider);
     }
 
     GuiceViewProvider getViewProvider() {

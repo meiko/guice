@@ -4,6 +4,7 @@ import com.google.inject.Injector;
 
 import com.vaadin.server.DeploymentConfiguration;
 import com.vaadin.server.ServiceException;
+import com.vaadin.server.VaadinService;
 import com.vaadin.server.VaadinServlet;
 import com.vaadin.server.VaadinServletService;
 import com.vaadin.ui.UI;
@@ -46,7 +47,7 @@ public abstract class GuiceVaadinServlet extends VaadinServlet {
 
     @Override
     protected void servletInitialized() throws ServletException {
-        guiceVaadin.vaadinInitialized();
+        VaadinService.getCurrent().addSessionInitListener(guiceVaadin);
     }
 
     @Override
@@ -64,5 +65,4 @@ public abstract class GuiceVaadinServlet extends VaadinServlet {
     protected Injector getInjector() {
         return guiceVaadin.getInjector();
     }
-
 }

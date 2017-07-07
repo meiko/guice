@@ -110,8 +110,6 @@ public abstract class ScopeTestBase {
         setVaadinSession(vaadinSession);
         when(sessionInitEvent.getSession()).thenReturn(vaadinSession);
 
-        guiceVaadin.getViewScoper().sessionInit(sessionInitEvent);
-        guiceVaadin.getUiScoper().sessionInit(sessionInitEvent);
         guiceVaadin.sessionInit(sessionInitEvent);
 
         return vaadinSession;
