@@ -1,5 +1,6 @@
 package com.vaadin.guice.server;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Module;
 
 import com.vaadin.guice.annotation.ForUI;
@@ -110,7 +111,9 @@ final class ReflectionUtils {
                 .getSubTypesOf(Module.class)
                 .stream()
                 .filter(moduleClass -> !modulesFromAnnotationClasses.contains(moduleClass))
+                .filter(moduleClass -> !moduleClass.equals(AbstractModule.class))
                 .map(moduleClass -> create(moduleClass, reflections, guiceVaadin))
+                .filter(Objects::nonNull)
                 .collect(toSet());
     }
 

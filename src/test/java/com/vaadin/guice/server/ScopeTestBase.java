@@ -51,13 +51,9 @@ public abstract class ScopeTestBase {
     @Test //default prototype behaviour should not be affected
     public void testPrototype() throws ServiceException, NoSuchFieldException, IllegalAccessException {
         newSession();
-        guiceVaadin.getUiScoper().startInitialization();
         Target target1 = guiceVaadin.get().getInstance(Target.class);
-        guiceVaadin.getUiScoper().endInitialization(target1);
-        guiceVaadin.getUiScoper().startInitialization();
         newSession();
         Target target2 = guiceVaadin.getInjector().getInstance(Target.class);
-        guiceVaadin.getUiScoper().endInitialization(target2);
 
         assertNotEquals(target1.getPrototype1(), target2.getPrototype1());
     }
@@ -65,13 +61,9 @@ public abstract class ScopeTestBase {
     @Test //default singleton behaviour should not be affected
     public void testSingleton() throws ServiceException, NoSuchFieldException, IllegalAccessException {
         newSession();
-        guiceVaadin.getUiScoper().startInitialization();
         Target target1 = guiceVaadin.getInjector().getInstance(Target.class);
-        guiceVaadin.getUiScoper().endInitialization(target1);
-        guiceVaadin.getUiScoper().startInitialization();
-        newSession();
+       newSession();
         Target target2 = guiceVaadin.getInjector().getInstance(Target.class);
-        guiceVaadin.getUiScoper().endInitialization(target2);
 
         assertEquals(target1.getSingleton1(), target2.getSingleton1());
     }
@@ -81,13 +73,9 @@ public abstract class ScopeTestBase {
     public void testTransactionScopeDifferent() throws ServiceException, NoSuchFieldException, IllegalAccessException {
 
         newSession();
-        guiceVaadin.getUiScoper().startInitialization();
         Target target1 = guiceVaadin.getInjector().getInstance(Target.class);
-        guiceVaadin.getUiScoper().endInitialization(target1);
-        guiceVaadin.getUiScoper().startInitialization();
         newSession();
         Target target2 = guiceVaadin.getInjector().getInstance(Target.class);
-        guiceVaadin.getUiScoper().endInitialization(target2);
 
         assertNotNull(target1);
         assertNotNull(target2);
@@ -98,13 +86,9 @@ public abstract class ScopeTestBase {
     public void testTransactionScopeSame() throws ServiceException, NoSuchFieldException, IllegalAccessException {
 
         newSession();
-        guiceVaadin.getUiScoper().startInitialization();
         Target target1 = guiceVaadin.getInjector().getInstance(Target.class);
-        guiceVaadin.getUiScoper().endInitialization(target1);
-        guiceVaadin.getUiScoper().startInitialization();
         newSession();
         Target target2 = guiceVaadin.getInjector().getInstance(Target.class);
-        guiceVaadin.getUiScoper().endInitialization(target2);
 
         assertNotNull(target1);
         assertNotNull(target2);

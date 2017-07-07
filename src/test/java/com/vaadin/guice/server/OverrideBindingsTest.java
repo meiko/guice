@@ -13,7 +13,9 @@ import org.junit.Test;
 
 import java.lang.reflect.Field;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class OverrideBindingsTest {
@@ -40,12 +42,12 @@ public class OverrideBindingsTest {
         AnInterface anInterface = guiceVaadin.getInjector().getInstance(AnInterface.class);
 
         assertNotNull(anInterface);
-        assertTrue(anInterface instanceof AnImplementation);
+        assertThat(anInterface, instanceOf(AnImplementation.class));
 
         AnotherInterface anotherInterface = guiceVaadin.getInjector().getInstance(AnotherInterface.class);
 
         assertNotNull(anotherInterface);
-        assertTrue(anotherInterface instanceof AnotherInterfaceImplementation);
+        assertThat(anotherInterface, instanceOf(AnotherInterfaceImplementation.class));
     }
 
     @Test
@@ -74,21 +76,21 @@ public class OverrideBindingsTest {
     private static class VaadinServletWithStaticAndDynamicLoadedModules extends GuiceVaadinServlet {
         @Override
         protected Iterable<String> packagesToScan() {
-            return ImmutableList.of("");
+            return ImmutableList.of("com.vaadin.guice.testClasses", "com.vaadin.guice.override", "com.vaadin.guice.nonoverride");
         }
     }
 
     private static class VaadinServletWithStaticLoadedModule extends GuiceVaadinServlet {
         @Override
         protected Iterable<String> packagesToScan() {
-            return ImmutableList.of("");
+            return ImmutableList.of("com.vaadin.guice.testClasses", "com.vaadin.guice.nonoverride");
         }
     }
 
     private static class VaadinServletWithDynamicLoadedModule extends GuiceVaadinServlet {
         @Override
         protected Iterable<String> packagesToScan() {
-            return ImmutableList.of("");
+            return ImmutableList.of("com.vaadin.guice.testClasses", "com.vaadin.guice.override");
         }
     }
 }

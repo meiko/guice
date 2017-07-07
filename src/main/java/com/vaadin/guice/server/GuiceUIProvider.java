@@ -43,7 +43,7 @@ class GuiceUIProvider extends UIProvider {
 
             GuiceUI annotation = uiClass.getAnnotation(GuiceUI.class);
 
-            checkArgument(annotation != null, "%s needs a GuiceUI-annotation");
+            checkArgument(annotation != null, "%s needs a GuiceUI-annotation", uiClass);
 
             String path = annotation.path();
             path = preparePath(path);

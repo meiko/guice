@@ -1,6 +1,7 @@
 package com.vaadin.guice.server;
 
 import com.google.inject.Binding;
+import com.google.inject.Injector;
 import com.google.inject.matcher.AbstractMatcher;
 import com.google.inject.spi.ProvisionListener;
 
@@ -36,12 +37,8 @@ final class UIProvisionListener extends AbstractMatcher<Binding<?>> implements P
     @Override
     public <T> void onProvision(ProvisionInvocation<T> provision) {
 
-        final UI ui = createUI(provision);
+        UI ui = (UI) provision.provision();
 
-        addNavigatorOptionally(ui);
-    }
-
-    private void addNavigatorOptionally(UI ui) {
         final Class<? extends UI> uiClass = ui.getClass();
 
         GuiceUI annotation = uiClass.getAnnotation(GuiceUI.class);
@@ -61,9 +58,11 @@ final class UIProvisionListener extends AbstractMatcher<Binding<?>> implements P
                 uiClass, viewContainerClass
         );
 
-        Component defaultView = guiceVaadin.getInjector().getInstance(viewContainerClass);
+        final Injector injector = guiceVaadin.getInjector();
 
-        GuiceNavigator navigator = guiceVaadin.getInjector().getInstance(annotation.navigator());
+        Component defaultView = injector.getInstance(viewContainerClass);
+
+        GuiceNavigator navigator = injector.getInstance(annotation.navigator());
 
         if (defaultView instanceof ViewDisplay) {
             navigator.init(ui, (ViewDisplay) defaultView);
@@ -84,7 +83,7 @@ final class UIProvisionListener extends AbstractMatcher<Binding<?>> implements P
         if (!annotation.errorProvider().equals(ViewProvider.class)) {
             checkArgument(annotation.errorView().equals(View.class), "GuiceUI#errorView and GuiceUI#errorProvider cannot be set both");
 
-            final ViewProvider errorProvider = guiceVaadin.getInjector().getInstance(annotation.errorProvider());
+            final ViewProvider errorProvider = injector.getInstance(annotation.errorProvider());
 
             navigator.setErrorProvider(errorProvider);
         } else if (!annotation.errorView().equals(View.class)) {
@@ -94,33 +93,11 @@ final class UIProvisionListener extends AbstractMatcher<Binding<?>> implements P
         guiceVaadin
                 .getViewChangeListeners(uiClass)
                 .stream()
-                .map(guiceVaadin.getInjector()::getInstance)
+                .map(injector::getInstance)
                 .forEach(navigator::addViewChangeListener);
 
         navigator.addProvider(guiceVaadin.getViewProvider());
 
         ui.setNavigator(navigator);
-    }
-
-    private <T> UI createUI(ProvisionInvocation<T> provision) {
-        final UI ui;
-
-        synchronized (guiceVaadin) {
-            final UIScoper uiScoper = guiceVaadin.getUiScoper();
-
-            try {
-                uiScoper.startInitialization();
-
-                ui = (UI) provision.provision();
-
-                uiScoper.endInitialization(ui);
-
-            } catch (RuntimeException e) {
-                uiScoper.rollbackInitialization();
-                throw e;
-            }
-        }
-
-        return ui;
     }
 }

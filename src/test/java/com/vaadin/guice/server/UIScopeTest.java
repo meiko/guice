@@ -183,9 +183,7 @@ public class UIScopeTest extends ScopeTestBase {
     }
 
     private Target createTarget() {
-        guiceVaadin.getUiScoper().startInitialization();
         Target target = guiceVaadin.getInjector().getInstance(Target.class);
-        guiceVaadin.getUiScoper().endInitialization(target);
         setCurrentUi(target);
         return target;
     }

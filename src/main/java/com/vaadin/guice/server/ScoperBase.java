@@ -28,25 +28,6 @@ abstract class ScoperBase<SCOPE_BASE> implements Scope, SessionDestroyListener, 
         this.vaadinSessionProvider = vaadinSessionProvider;
     }
 
-    void startInitialization() {
-        checkState(currentInitializationScopeSet == null);
-        currentInitializationScopeSet = KeyObjectMapPool.leaseMap();
-    }
-
-    void rollbackInitialization() {
-        checkState(currentInitializationScopeSet != null);
-        KeyObjectMapPool.returnMap(currentInitializationScopeSet);
-        currentInitializationScopeSet = null;
-    }
-
-    void endInitialization(SCOPE_BASE scopeBase) {
-        checkState(currentInitializationScopeSet != null);
-        final Map<SCOPE_BASE, Map<Key<?>, Object>> scopedObjectsPerInstance = sessionToScopedObjectsMap.get(vaadinSessionProvider.get());
-        checkState(scopedObjectsPerInstance != null);
-        scopedObjectsPerInstance.put(scopeBase, currentInitializationScopeSet);
-        currentInitializationScopeSet = null;
-    }
-
     @Override
     @SuppressWarnings("unchecked")
     public <T> Provider<T> scope(final Key<T> key, final Provider<T> unscoped) {
@@ -54,17 +35,12 @@ abstract class ScoperBase<SCOPE_BASE> implements Scope, SessionDestroyListener, 
     }
 
     private Map<Key<?>, Object> getCurrentScopeMap() {
-        Map<Key<?>, Object> scopedObjects;
 
-        if (currentInitializationScopeSet != null) {
-            scopedObjects = currentInitializationScopeSet;
-        } else {
-            final Map<SCOPE_BASE, Map<Key<?>, Object>> scopedObjectsByInstance = sessionToScopedObjectsMap.get(vaadinSessionProvider.get());
-            checkState(scopedObjectsByInstance != null);
-            scopedObjects = scopedObjectsByInstance.get(currentInstanceProvider.get());
-            checkState(scopedObjects != null);
-        }
-        return scopedObjects;
+        final Map<SCOPE_BASE, Map<Key<?>, Object>> scopedObjectsByInstance = sessionToScopedObjectsMap.get(vaadinSessionProvider.get());
+
+        checkState(scopedObjectsByInstance != null);
+
+        return scopedObjectsByInstance.computeIfAbsent(currentInstanceProvider.get(), key -> new HashMap<>());
     }
 
     @Override

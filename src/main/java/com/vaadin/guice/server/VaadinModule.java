@@ -46,9 +46,5 @@ class VaadinModule extends AbstractModule {
         UIProvisionListener uiProvisionListener = new UIProvisionListener(guiceVaadin);
 
         bindListener(uiProvisionListener, uiProvisionListener);
-
-        ViewProvisionListener viewProvisionListener = new ViewProvisionListener(guiceVaadin);
-
-        bindListener(viewProvisionListener, viewProvisionListener);
     }
 }
