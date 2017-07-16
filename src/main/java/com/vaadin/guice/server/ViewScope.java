@@ -5,9 +5,9 @@ import com.google.inject.Provider;
 import com.vaadin.navigator.View;
 import com.vaadin.server.VaadinSession;
 
-class ViewScoper extends ScoperBase<View> {
+class ViewScope extends ScopeBase<View> {
 
-    ViewScoper(Provider<VaadinSession> vaadinSessionProvider, Provider<View> currentViewProvider) {
+    ViewScope(Provider<VaadinSession> vaadinSessionProvider, Provider<View> currentViewProvider) {
         super(currentViewProvider, vaadinSessionProvider);
     }
 }

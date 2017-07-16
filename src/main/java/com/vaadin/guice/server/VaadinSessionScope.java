@@ -4,16 +4,16 @@ import com.google.inject.Provider;
 
 import com.vaadin.server.VaadinSession;
 
-class VaadinSessionScoper extends ScoperBase<VaadinSessionScoper.SingletonObject> {
+class VaadinSessionScope extends ScopeBase<VaadinSessionScope.SingletonObject> {
 
-    VaadinSessionScoper(Provider<VaadinSession> vaadinSessionProvider) {
+    VaadinSessionScope(Provider<VaadinSession> vaadinSessionProvider) {
         super(() -> SingletonObject.INSTANCE, vaadinSessionProvider);
     }
 
-    static final class SingletonObject{
-        private SingletonObject(){
-        }
-
+    static final class SingletonObject {
         static final SingletonObject INSTANCE = new SingletonObject();
+
+        private SingletonObject() {
+        }
     }
 }

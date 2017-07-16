@@ -19,31 +19,31 @@ import static com.google.inject.multibindings.Multibinder.newSetBinder;
 
 class VaadinModule extends AbstractModule {
 
-    private final GuiceVaadin guiceVaadin;
+    private final GuiceVaadinServlet GuiceVaadinServlet;
 
-    VaadinModule(GuiceVaadin guiceVaadin) {
-        this.guiceVaadin = guiceVaadin;
+    VaadinModule(GuiceVaadinServlet GuiceVaadinServlet) {
+        this.GuiceVaadinServlet = GuiceVaadinServlet;
     }
 
     @Override
     protected void configure() {
-        bindScope(UIScope.class, guiceVaadin.getUiScoper());
-        bindScope(GuiceUI.class, guiceVaadin.getUiScoper());
-        bindScope(ViewScope.class, guiceVaadin.getViewScoper());
-        bindScope(GuiceView.class, guiceVaadin.getUiScoper());
-        bindScope(VaadinSessionScope.class, guiceVaadin.getVaadinSessionScoper());
-        bind(UIProvider.class).toInstance(guiceVaadin.getGuiceUIProvider());
-        bind(ViewProvider.class).toInstance(guiceVaadin.getViewProvider());
+        bindScope(UIScope.class, GuiceVaadinServlet.getUiScoper());
+        bindScope(GuiceUI.class, GuiceVaadinServlet.getUiScoper());
+        bindScope(ViewScope.class, GuiceVaadinServlet.getViewScoper());
+        bindScope(GuiceView.class, GuiceVaadinServlet.getUiScoper());
+        bindScope(VaadinSessionScope.class, GuiceVaadinServlet.getVaadinSessionScoper());
+        bind(UIProvider.class).toInstance(GuiceVaadinServlet.getGuiceUIProvider());
+        bind(ViewProvider.class).toInstance(GuiceVaadinServlet.getViewProvider());
 
-        bind(VaadinSession.class).toProvider(guiceVaadin.getVaadinSessionProvider());
-        bind(UI.class).toProvider(guiceVaadin.getCurrentUIProvider());
-        bind(VaadinService.class).toProvider(guiceVaadin.getVaadinServiceProvider());
+        bind(VaadinSession.class).toProvider(GuiceVaadinServlet.getVaadinSessionProvider());
+        bind(UI.class).toProvider(GuiceVaadinServlet.getCurrentUIProvider());
+        bind(VaadinService.class).toProvider(GuiceVaadinServlet.getVaadinServiceProvider());
 
         final Multibinder<View> viewMultibinder = newSetBinder(binder(), View.class);
 
-        guiceVaadin.getViews().forEach(view -> viewMultibinder.addBinding().to(view));
+        GuiceVaadinServlet.getViews().forEach(view -> viewMultibinder.addBinding().to(view));
 
-        UIProvisionListener uiProvisionListener = new UIProvisionListener(guiceVaadin);
+        UIProvisionListener uiProvisionListener = new UIProvisionListener(GuiceVaadinServlet);
 
         bindListener(uiProvisionListener, uiProvisionListener);
     }

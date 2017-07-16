@@ -13,8 +13,6 @@ import java.util.logging.Logger;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
-import static com.vaadin.guice.server.PathUtil.extractUIPathFromRequest;
-import static com.vaadin.guice.server.PathUtil.preparePath;
 
 /**
  * Vaadin {@link com.vaadin.server.UIProvider} that looks up UI classes from the Guice application
@@ -28,10 +26,10 @@ class GuiceUIProvider extends UIProvider {
 
     private final Map<String, Class<? extends UI>> pathToUIMap;
     private final Map<String, Class<? extends UI>> wildcardPathToUIMap;
-    private final GuiceVaadin guiceVaadin;
+    private final GuiceVaadinServlet guiceVaadinServlet;
 
-    GuiceUIProvider(GuiceVaadin guiceVaadin) {
-        this.guiceVaadin = guiceVaadin;
+    GuiceUIProvider(GuiceVaadinServlet GuiceVaadinServlet) {
+        this.guiceVaadinServlet = GuiceVaadinServlet;
         Logger logger = Logger.getLogger(getClass().getName());
 
         logger.info("Checking the application context for Vaadin UIs");
@@ -39,14 +37,21 @@ class GuiceUIProvider extends UIProvider {
         pathToUIMap = new ConcurrentHashMap<>();
         wildcardPathToUIMap = new ConcurrentHashMap<>();
 
-        for (Class<? extends UI> uiClass : guiceVaadin.getUis()) {
+        for (Class<? extends UI> uiClass : GuiceVaadinServlet.getUis()) {
 
             GuiceUI annotation = uiClass.getAnnotation(GuiceUI.class);
 
             checkArgument(annotation != null, "%s needs a GuiceUI-annotation", uiClass);
 
             String path = annotation.path();
-            path = preparePath(path);
+
+            if (!path.startsWith("/")) {
+                path = "/" + path;
+            }
+
+            if (path.endsWith("/")) {
+                path = path.substring(0, path.length() - 1);
+            }
 
             Class<? extends UI> existingUiForPath = pathToUIMap.get(path);
 
@@ -77,8 +82,7 @@ class GuiceUIProvider extends UIProvider {
     @Override
     public Class<? extends UI> getUIClass(
             UIClassSelectionEvent uiClassSelectionEvent) {
-        final String path = extractUIPathFromRequest(uiClassSelectionEvent
-                .getRequest());
+        String path = getPath(uiClassSelectionEvent);
 
         Class<? extends UI> uiClass = pathToUIMap.get(path);
 
@@ -95,8 +99,21 @@ class GuiceUIProvider extends UIProvider {
                 .orElse(null);
     }
 
+    private String getPath(UIClassSelectionEvent uiClassSelectionEvent) {
+        String path = uiClassSelectionEvent.getRequest().getPathInfo();
+
+        final int indexOfBang = path.indexOf('!');
+
+        if (indexOfBang > -1) {
+            path = path.substring(0, indexOfBang);
+        } else if (path.endsWith("/")) {
+            path = path.substring(0, path.length() - 1);
+        }
+        return path;
+    }
+
     @Override
     public UI createInstance(UICreateEvent event) {
-        return guiceVaadin.getInjector().getInstance(event.getUIClass());
+        return guiceVaadinServlet.getInjector().getInstance(event.getUIClass());
     }
 }

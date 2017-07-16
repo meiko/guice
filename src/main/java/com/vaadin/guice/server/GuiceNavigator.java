@@ -8,7 +8,7 @@ import com.vaadin.ui.SingleComponentContainer;
 import com.vaadin.ui.UI;
 
 /**
- * GuiceNavigator is the default {@link Navigator} for GuiceVaadin
+ * GuiceNavigator is the default {@link Navigator} for GuiceVaadinServlet
  *
  * @see Navigator
  * @see GuiceUI#navigator()

@@ -33,16 +33,14 @@ public class ViewProviderTest {
 
         Reflections reflections = new Reflections("com.vaadin.guice.testClasses");
 
-        final GuiceVaadin guiceVaadin = new GuiceVaadin(
-                vaadinSessionProvider,
+        final GuiceVaadinServlet guiceVaadinServlet = new GuiceVaadinServlet(vaadinSessionProvider,
                 currentUIProvider,
                 currentViewProvider,
                 vaadinServiceProvider,
                 reflections,
-                new Annotation[0]
-        );
+                new Annotation[0]);
 
-        viewProvider = guiceVaadin.getViewProvider();
+        viewProvider = guiceVaadinServlet.getViewProvider();
     }
 
     @Test

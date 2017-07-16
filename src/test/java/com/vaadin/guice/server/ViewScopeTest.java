@@ -11,16 +11,16 @@ public class ViewScopeTest extends ScopeTestBase {
     public void view_scopes_and_ui_scopes_should_not_overlap() throws NoSuchFieldException, IllegalAccessException {
 
 
-        final ViewA viewA = guiceVaadin.assemble(ViewA.class);
+        final ViewA viewA = GuiceVaadinServlet.assemble(ViewA.class);
     }
 
-    private GuiceVaadin getGuiceVaadin(GuiceVaadinServlet servlet) throws NoSuchFieldException, IllegalAccessException {
-        final Field field = servlet.getClass().getSuperclass().getDeclaredField("guiceVaadin");
+    private GuiceVaadinServlet getGuiceVaadinServlet(GuiceVaadinServletServlet servlet) throws NoSuchFieldException, IllegalAccessException {
+        final Field field = servlet.getClass().getSuperclass().getDeclaredField("GuiceVaadinServlet");
         field.setAccessible(true);
-        return (GuiceVaadin) field.get(servlet);
+        return (GuiceVaadinServlet) field.get(servlet);
     }
 
     @PackagesToScan(modules = {}, basePackages = "com.vaadin.guice.testClasses")
-    private static class VaadinServletWithDynamicLoadedModule extends GuiceVaadinServlet {
+    private static class VaadinServletWithDynamicLoadedModule extends GuiceVaadinServletServlet {
     }
 }*/

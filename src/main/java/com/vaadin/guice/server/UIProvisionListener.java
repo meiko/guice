@@ -21,10 +21,10 @@ import static java.lang.String.format;
 
 final class UIProvisionListener extends AbstractMatcher<Binding<?>> implements ProvisionListener {
 
-    private final GuiceVaadin guiceVaadin;
+    private final GuiceVaadinServlet servlet;
 
-    UIProvisionListener(GuiceVaadin guiceVaadin) {
-        this.guiceVaadin = guiceVaadin;
+    UIProvisionListener(GuiceVaadinServlet servlet) {
+        this.servlet = servlet;
     }
 
     @Override
@@ -58,7 +58,7 @@ final class UIProvisionListener extends AbstractMatcher<Binding<?>> implements P
                 uiClass, viewContainerClass
         );
 
-        final Injector injector = guiceVaadin.getInjector();
+        final Injector injector = servlet.getInjector();
 
         Component defaultView = injector.getInstance(viewContainerClass);
 
@@ -90,13 +90,13 @@ final class UIProvisionListener extends AbstractMatcher<Binding<?>> implements P
             navigator.setErrorView(annotation.errorView());
         }
 
-        guiceVaadin
+        servlet
                 .getViewChangeListeners(uiClass)
                 .stream()
                 .map(injector::getInstance)
                 .forEach(navigator::addViewChangeListener);
 
-        navigator.addProvider(guiceVaadin.getViewProvider());
+        navigator.addProvider(servlet.getViewProvider());
 
         ui.setNavigator(navigator);
     }

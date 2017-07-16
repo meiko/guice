@@ -1,7 +1,5 @@
 package com.vaadin.guice.server;
 
-import com.google.common.collect.ImmutableMap;
-
 import com.vaadin.guice.annotation.GuiceView;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewProvider;
@@ -10,7 +8,8 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.vaadin.guice.server.PathUtil.removeParametersFromViewName;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * A Vaadin {@link ViewProvider} that fetches the views from the guice application context. The
@@ -24,37 +23,35 @@ import static com.vaadin.guice.server.PathUtil.removeParametersFromViewName;
  */
 class GuiceViewProvider implements ViewProvider {
 
-    private static final long serialVersionUID = 6113953554214462809L;
-
     private final Map<String, Class<? extends View>> viewNamesToViewClassesMap;
-    private final GuiceVaadin guiceVaadin;
+    private final GuiceVaadinServlet guiceVaadinServlet;
 
-    GuiceViewProvider(Set<Class<? extends View>> viewClasses, GuiceVaadin guiceVaadin) {
-        viewNamesToViewClassesMap = scanForViews(viewClasses);
-        this.guiceVaadin = guiceVaadin;
-    }
+    GuiceViewProvider(Set<Class<? extends View>> viewClasses, GuiceVaadinServlet guiceVaadinServlet) {
 
-    private Map<String, Class<? extends View>> scanForViews(Set<Class<? extends View>> viewClasses) {
-        ImmutableMap.Builder<String, Class<? extends View>> viewMapBuilder = ImmutableMap.builder();
+        viewClasses.forEach(c -> checkArgument(c.isAnnotationPresent(GuiceView.class), "GuiceView-annotation missing at %s", c));
 
-        for (Class<? extends View> viewClass : viewClasses) {
+        viewNamesToViewClassesMap = viewClasses
+                .stream()
+                .collect(
+                        toMap(
+                                viewClass -> viewClass.getAnnotation(GuiceView.class).value(),
+                                viewClass -> viewClass)
+                );
 
-            GuiceView annotation = viewClass.getAnnotation(GuiceView.class);
-
-            checkArgument(annotation != null, "GuiceView-annotation missing at %s", viewClass);
-
-            viewMapBuilder.put(annotation.value(), viewClass);
-        }
-
-        return viewMapBuilder.build();
+        this.guiceVaadinServlet = guiceVaadinServlet;
     }
 
     @Override
-    public String getViewName(String viewAndParameters) {
+    public String getViewName(String viewNameAndParameters) {
+        if (isNullOrEmpty(viewNameAndParameters)) {
+            return "";
+        }
 
-        final String viewName = removeParametersFromViewName(viewAndParameters);
+        final int indexOfDelimiter = viewNameAndParameters.indexOf('/');
 
-        return viewNamesToViewClassesMap.containsKey(viewName) ? viewName : null;
+        return indexOfDelimiter != -1
+                ? viewNameAndParameters.substring(0, indexOfDelimiter)
+                : viewNameAndParameters;
     }
 
     @Override
@@ -64,6 +61,6 @@ class GuiceViewProvider implements ViewProvider {
 
         checkArgument(viewClass != null, "no view for name \"%s\" registered", viewName);
 
-        return guiceVaadin.getInjector().getInstance(viewClass);
+        return guiceVaadinServlet.getInjector().getInstance(viewClass);
     }
 }
