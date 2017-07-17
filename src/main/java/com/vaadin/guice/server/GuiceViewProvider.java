@@ -64,8 +64,6 @@ class GuiceViewProvider implements ViewProvider {
 
         Class<? extends View> viewClass = viewNamesToViewClassesMap.get(viewName);
 
-        checkArgument(viewClass != null, "no view for name \"%s\" registered", viewName);
-
         return guiceVaadinServlet.getInjector().getInstance(viewClass);
     }
 }
