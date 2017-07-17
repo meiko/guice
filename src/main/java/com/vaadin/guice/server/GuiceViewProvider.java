@@ -33,9 +33,10 @@ class GuiceViewProvider implements ViewProvider {
         viewNamesToViewClassesMap = viewClasses
                 .stream()
                 .collect(
-                        toMap(
-                                viewClass -> viewClass.getAnnotation(GuiceView.class).value(),
-                                viewClass -> viewClass)
+                    toMap(
+                        viewClass -> viewClass.getAnnotation(GuiceView.class).value().toLowerCase(),
+                        viewClass -> viewClass
+                    )
                 );
 
         this.guiceVaadinServlet = guiceVaadinServlet;
@@ -49,9 +50,15 @@ class GuiceViewProvider implements ViewProvider {
 
         final int indexOfDelimiter = viewNameAndParameters.indexOf('/');
 
-        return indexOfDelimiter != -1
+        String viewName = indexOfDelimiter != -1
                 ? viewNameAndParameters.substring(0, indexOfDelimiter)
                 : viewNameAndParameters;
+
+        //view-names are case-insensitive
+        viewName = viewName.toLowerCase();
+
+        //if no view is registered under this name, null is to be returned
+        return viewNamesToViewClassesMap.containsKey(viewName) ? viewName : null;
     }
 
     @Override
