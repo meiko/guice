@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.stream.Collectors.toMap;
 
@@ -44,9 +45,7 @@ class GuiceViewProvider implements ViewProvider {
 
     @Override
     public String getViewName(String viewNameAndParameters) {
-        if (isNullOrEmpty(viewNameAndParameters)) {
-            return "";
-        }
+        checkNotNull(viewNameAndParameters);
 
         final int indexOfDelimiter = viewNameAndParameters.indexOf('/');
 
