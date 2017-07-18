@@ -37,7 +37,17 @@ final class UIProvisionListener extends AbstractMatcher<Binding<?>> implements P
     @Override
     public <T> void onProvision(ProvisionInvocation<T> provision) {
 
-        UI ui = (UI) provision.provision();
+        UI ui;
+
+        synchronized (servlet.getUiScoper()){
+            try{
+                ui = (UI)provision.provision();
+                servlet.getUiScoper().endInit(ui);
+            } catch (RuntimeException e){
+                servlet.getUiScoper().rollback();
+                throw e;
+            }
+        }
 
         final Class<? extends UI> uiClass = ui.getClass();
 

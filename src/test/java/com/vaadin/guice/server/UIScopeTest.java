@@ -1,13 +1,10 @@
 package com.vaadin.guice.server;
 
-import com.vaadin.guice.testClasses.Prototype1;
-import com.vaadin.guice.testClasses.Singleton1;
-import com.vaadin.guice.testClasses.Target;
-import com.vaadin.guice.testClasses.UIScoped1;
-import com.vaadin.guice.testClasses.UIScoped2;
+import com.vaadin.guice.testClasses.*;
 import com.vaadin.server.ServiceException;
 import com.vaadin.server.VaadinSession;
 
+import com.vaadin.ui.UI;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -23,7 +20,7 @@ public class UIScopeTest extends ScopeTestBase {
 
         Target target1 = createTarget();
 
-        Target target2 = createTarget();
+        Target2 target2 = createTarget2();
 
         //directly
         assertEquals(target1.getUiScoped1().getUiScoped2(), target1.getUiScoped2());
@@ -159,7 +156,7 @@ public class UIScopeTest extends ScopeTestBase {
 
         Target target1 = createTarget();
 
-        Target target2 = createTarget();
+        Target2 target2 = createTarget2();
 
         assertNotNull(target1);
         assertNotNull(target2);
@@ -178,13 +175,22 @@ public class UIScopeTest extends ScopeTestBase {
         assertNotEquals(target2.getPrototype1(), prototype1FromTarget2);
     }
 
-    private void setCurrentUi(Target target) {
-        when(GuiceVaadinServlet.getCurrentUIProvider().get()).thenReturn(target);
+    private void setCurrentUi(UI ui) {
+        when(GuiceVaadinServlet.getCurrentUIProvider().get()).thenReturn(ui);
     }
 
     private Target createTarget() {
+        setCurrentUi(null);
         Target target = GuiceVaadinServlet.getInjector().getInstance(Target.class);
         setCurrentUi(target);
         return target;
+    }
+
+
+    private Target2 createTarget2() {
+        setCurrentUi(null);
+        Target2 target2 = GuiceVaadinServlet.getInjector().getInstance(Target2.class);
+        setCurrentUi(target2);
+        return target2;
     }
 }
