@@ -28,17 +28,17 @@ abstract class ScopeBase<T> implements Scope {
         return () -> {
             try {
                 Map<T, Map<Key<?>, Object>> scopedObjectsByInstance = sessionToScopedObjectsMap.computeIfAbsent(
-                    checkNotNull(vaadinSessionProvider.get()),
-                    s -> new HashMap<>()
+                        checkNotNull(vaadinSessionProvider.get()),
+                        s -> new HashMap<>()
                 );
 
                 final Map<Key<?>, Object> scopedObjects = scopedObjectsByInstance.computeIfAbsent(
-                    currentInstanceProvider.get(),
-                    i -> new HashMap<>()
+                        currentInstanceProvider.get(),
+                        i -> new HashMap<>()
                 );
 
-                return (U)scopedObjects.computeIfAbsent(key, k -> unscoped.get());
-            } catch (RuntimeException e){
+                return (U) scopedObjects.computeIfAbsent(key, k -> unscoped.get());
+            } catch (RuntimeException e) {
                 rollback();
                 throw e;
             }
@@ -49,20 +49,20 @@ abstract class ScopeBase<T> implements Scope {
         checkState(currentInstanceProvider.get() == null);
 
         Map<T, Map<Key<?>, Object>> scopedObjectsByInstance = sessionToScopedObjectsMap.computeIfAbsent(
-            checkNotNull(vaadinSessionProvider.get()),
-            s -> new HashMap<>()
+                checkNotNull(vaadinSessionProvider.get()),
+                s -> new HashMap<>()
         );
 
         Map<Key<?>, Object> scopedObjects = scopedObjectsByInstance.remove(null);
 
-        if(scopedObjects == null){
+        if (scopedObjects == null) {
             scopedObjects = new HashMap<>();
         }
 
         scopedObjectsByInstance.put(t, scopedObjects);
     }
 
-    void rollback(){
+    void rollback() {
         checkState(currentInstanceProvider.get() == null);
 
         Map<T, Map<Key<?>, Object>> scopedObjectsByInstance = sessionToScopedObjectsMap.computeIfAbsent(

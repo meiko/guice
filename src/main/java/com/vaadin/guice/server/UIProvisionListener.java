@@ -39,75 +39,91 @@ final class UIProvisionListener extends AbstractMatcher<Binding<?>> implements P
 
         UI ui;
 
-        synchronized (servlet.getUiScoper()){
-            try{
-                ui = (UI)provision.provision();
+        synchronized (servlet.getUiScoper()) {
+            try {
+                ui = (UI) provision.provision();
+                process(ui);
                 servlet.getUiScoper().endInit(ui);
-            } catch (RuntimeException e){
+            } catch (RuntimeException e) {
                 servlet.getUiScoper().rollback();
                 throw e;
             }
         }
+    }
 
+    private void process(UI ui) {
         final Class<? extends UI> uiClass = ui.getClass();
 
         GuiceUI annotation = uiClass.getAnnotation(GuiceUI.class);
 
         checkState(annotation != null);
 
+        Class<? extends Component> contentClass = annotation.content();
+
+        if (!contentClass.equals(Component.class)) {
+            checkState(
+                    contentClass.isAnnotationPresent(UIScope.class),
+                    "%s is annotated with having %s as it's viewContainer, but this class does not have a @UIScope annotation. " +
+                            "ViewContainers must be put in UIScope",
+                    uiClass, contentClass
+            );
+
+            Component content = servlet.getInjector().getInstance(contentClass);
+
+            ui.setContent(content);
+        }
+
         Class<? extends Component> viewContainerClass = annotation.viewContainer();
 
-        if (viewContainerClass.equals(Component.class)) {
-            return;
-        }
+        if (!viewContainerClass.equals(Component.class)) {
 
-        checkState(
-                viewContainerClass.isAnnotationPresent(UIScope.class),
-                "%s is annotated with having %s as it's viewContainer, but this class does not have a @UIScope annotation. " +
-                        "ViewContainers must be put in UIScope",
-                uiClass, viewContainerClass
-        );
-
-        final Injector injector = servlet.getInjector();
-
-        Component defaultView = injector.getInstance(viewContainerClass);
-
-        GuiceNavigator navigator = injector.getInstance(annotation.navigator());
-
-        if (defaultView instanceof ViewDisplay) {
-            navigator.init(ui, (ViewDisplay) defaultView);
-        } else if (defaultView instanceof ComponentContainer) {
-            navigator.init(ui, (ComponentContainer) defaultView);
-        } else if (defaultView instanceof SingleComponentContainer) {
-            navigator.init(ui, (SingleComponentContainer) defaultView);
-        } else {
-            throw new IllegalArgumentException(
-                    format(
-                            "%s is set as viewContainer() in @GuiceUI of %s, must be either ComponentContainer, SingleComponentContainer or ViewDisplay",
-                            viewContainerClass,
-                            uiClass
-                    )
+            checkState(
+                    viewContainerClass.isAnnotationPresent(UIScope.class),
+                    "%s is annotated with having %s as it's viewContainer, but this class does not have a @UIScope annotation. " +
+                            "ViewContainers must be put in UIScope",
+                    uiClass, viewContainerClass
             );
+
+
+            Component defaultView = servlet.getInjector().getInstance(viewContainerClass);
+
+            GuiceNavigator navigator = servlet.getInjector().getInstance(annotation.navigator());
+
+            if (defaultView instanceof ViewDisplay) {
+                navigator.init(ui, (ViewDisplay) defaultView);
+            } else if (defaultView instanceof ComponentContainer) {
+                navigator.init(ui, (ComponentContainer) defaultView);
+            } else if (defaultView instanceof SingleComponentContainer) {
+                navigator.init(ui, (SingleComponentContainer) defaultView);
+            } else {
+                throw new IllegalArgumentException(
+                        format(
+                                "%s is set as viewContainer() in @GuiceUI of %s, must be either ComponentContainer, SingleComponentContainer or ViewDisplay",
+                                viewContainerClass,
+                                uiClass
+                        )
+                );
+            }
+
+            if (!annotation.errorProvider().equals(ViewProvider.class)) {
+                checkArgument(annotation.errorView().equals(View.class), "GuiceUI#errorView and GuiceUI#errorProvider cannot be set both");
+
+                final ViewProvider errorProvider = servlet.getInjector().getInstance(annotation.errorProvider());
+
+                navigator.setErrorProvider(errorProvider);
+            } else if (!annotation.errorView().equals(View.class)) {
+                navigator.setErrorView(annotation.errorView());
+            }
+
+            servlet
+                    .getViewChangeListeners(uiClass)
+                    .stream()
+                    .map(servlet.getInjector()::getInstance)
+                    .forEach(navigator::addViewChangeListener);
+
+            navigator.addProvider(servlet.getViewProvider());
+
+            ui.setNavigator(navigator);
         }
-
-        if (!annotation.errorProvider().equals(ViewProvider.class)) {
-            checkArgument(annotation.errorView().equals(View.class), "GuiceUI#errorView and GuiceUI#errorProvider cannot be set both");
-
-            final ViewProvider errorProvider = injector.getInstance(annotation.errorProvider());
-
-            navigator.setErrorProvider(errorProvider);
-        } else if (!annotation.errorView().equals(View.class)) {
-            navigator.setErrorView(annotation.errorView());
-        }
-
-        servlet
-                .getViewChangeListeners(uiClass)
-                .stream()
-                .map(injector::getInstance)
-                .forEach(navigator::addViewChangeListener);
-
-        navigator.addProvider(servlet.getViewProvider());
-
-        ui.setNavigator(navigator);
     }
 }

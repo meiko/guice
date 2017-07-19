@@ -36,14 +36,14 @@ final class ViewProvisionListener extends AbstractMatcher<Binding<?>> implements
 
     @Override
     public <T> void onProvision(ProvisionInvocation<T> provision) {
-        
+
         View view;
-        
-        synchronized (servlet.getViewScoper()){
-            try{
+
+        synchronized (servlet.getViewScoper()) {
+            try {
                 view = (View) provision.provision();
                 servlet.getViewScoper().endInit(view);
-            } catch (RuntimeException e){
+            } catch (RuntimeException e) {
                 servlet.getViewScoper().rollback();
                 throw e;
             }

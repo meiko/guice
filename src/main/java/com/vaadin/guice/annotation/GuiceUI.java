@@ -15,24 +15,24 @@ import java.lang.annotation.Target;
 /**
  * Annotation to be put on {@link com.vaadin.ui.UI}-subclasses that are to be automatically detected
  * and configured by guice. Use it like this:
- *
+ * <p>
  * <pre>
  * &#064;GuiceUI
  * public class MyRootUI extends UI {
  *     // ...
  * }
  * </pre>
- *
+ * <p>
  * Or like this, if you want to map your UI to another URL (for example if you are having multiple
  * UI subclasses in your application):
- *
+ * <p>
  * <pre>
  * &#064;GuiceUI(path = &quot;/myPath&quot;)
  * public class MyUI extends UI {
  *     // ...
  * }
  * </pre>
- *
+ * <p>
  * The annotated UI will automatically be placed in the {@link UIScope}, so there is no need to add
  * that annotation explicitly.
  *
@@ -53,18 +53,23 @@ public @interface GuiceUI {
      */
     String path() default "";
 
-    /*
-    * the UI's default view container for navigation.
-    * ViewContainers are used by a UI's {@link com.vaadin.navigator.Navigator}. A view container must
-    * implement one of the following interface:
-    * <p>
-    *     <ul>
-    *         <li>{@link com.vaadin.ui.ComponentContainer}</li>
-    *         <li>{@link com.vaadin.ui.SingleComponentContainer}</li>
-    *         <li>{@link com.vaadin.navigator.ViewDisplay}</li>
-    *     </ul>
-    * <p>
-    */
+    /**
+     *
+     */
+    Class<? extends Component> content() default Component.class;
+
+    /**
+     * the UI's default view container for navigation.
+     * ViewContainers are used by a UI's {@link com.vaadin.navigator.Navigator}. A view container must
+     * implement one of the following interface:
+     * <p>
+     * <ul>
+     * <li>{@link com.vaadin.ui.ComponentContainer}</li>
+     * <li>{@link com.vaadin.ui.SingleComponentContainer}</li>
+     * <li>{@link com.vaadin.navigator.ViewDisplay}</li>
+     * </ul>
+     * <p>
+     */
     Class<? extends Component> viewContainer() default Component.class;
 
     /**

@@ -76,7 +76,7 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
     private ViewScope viewScoper;
     private Set<Class<? extends VaadinServiceInitListener>> vaadinServiceInitListeners;
 
-    public GuiceVaadinServlet() throws ReflectiveOperationException {
+    public GuiceVaadinServlet() {
 
         final String packagesToScan = getServletConfig().getInitParameter("packagesToScan");
 
@@ -89,11 +89,11 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         }
     }
 
-    GuiceVaadinServlet(String[] packagesToScan) throws ReflectiveOperationException {
+    GuiceVaadinServlet(String[] packagesToScan) {
         setup(packagesToScan);
     }
 
-    GuiceVaadinServlet(Reflections reflections) throws ReflectiveOperationException {
+    GuiceVaadinServlet(Reflections reflections) {
         setup(reflections, getClass().getAnnotations());
     }
 

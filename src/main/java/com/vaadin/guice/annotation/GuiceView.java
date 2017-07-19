@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 /**
  * Annotation to be placed on {@link com.vaadin.navigator.View}-classes that should be handled by
  * the {@link com.vaadin.navigator.ViewProvider}.
- *
+ * <p>
  * <pre>
  * &#064;GuiceView(&quot;&quot;)
  * public class MyDefaultView extends CustomComponent implements View {

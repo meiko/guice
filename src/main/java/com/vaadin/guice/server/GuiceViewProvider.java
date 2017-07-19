@@ -33,10 +33,10 @@ class GuiceViewProvider implements ViewProvider {
         viewNamesToViewClassesMap = viewClasses
                 .stream()
                 .collect(
-                    toMap(
-                        viewClass -> viewClass.getAnnotation(GuiceView.class).value().toLowerCase(),
-                        viewClass -> viewClass
-                    )
+                        toMap(
+                                viewClass -> viewClass.getAnnotation(GuiceView.class).value().toLowerCase(),
+                                viewClass -> viewClass
+                        )
                 );
 
         this.guiceVaadinServlet = guiceVaadinServlet;

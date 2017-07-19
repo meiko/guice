@@ -3,20 +3,90 @@ Guice Vaadin
 
 Guice Vaadin is the official [Guice](https://github.com/google/guice) integration for [Vaadin Framework](https://github.com/vaadin/framework).
 
-Download release
-----
+#Usage
 
-Official releases of this add-on are available at Vaadin Directory. For Maven instructions, download and reviews, go to https://vaadin.com/addon/vaadin-guice.
+##setting up the servlet
 
-Building the project
-----
-Execute `mvn clean install` in the root directory to build guice vaadin.
+first step is to set up the GuiceVaadinServlet, which needs a packagesToScan parameter holding the 
+names of all packages that should be scanned for UIs, Views, ViewChangeListeners and VaadinServiceInitListeners. 
+Sub-packages of these packages are scanned as well. 
 
-Contributions
-----
-Contributions to the project can be done using pull requests.
-You will be asked to sign a contribution agreement after creating the first one.
+This can be done either by subclassing GuiceVaadinServlet and annotating it with @PackagesToScan, or by
+configuring a GuiceVaadinServlet in the deployment-descriptor.
 
+###configuration in java
+
+```java
+    package org.mypackage;
+
+    @javax.servlet.annotation.WebServlet(name = "Guice-Vaadin-Servlet", urlPatterns = "/*")
+    @com.vaadin.guice.annotation.PackagesToScan({"org.mycompany.ui", "org.mycompany.moreui"})
+    public class MyServlet extends com.vaadin.guice.server.GuiceVaadinServlet{
+    }
+```
+
+###configuration in xml
+
+```xml
+<web-app xmlns="http://java.sun.com/xml/ns/javaee" version="2.5">
+    <servlet>
+        <init-param>
+            <param-name>packagesToScan</param-name>
+            <param-value>org.mycompany.ui, org.mycompany.moreui</param-value>
+        </init-param>
+        <servlet-name>Guice-Vaadin-Servlet</servlet-name>
+        <servlet-class>com.vaadin.guice.server.GuiceVaadinServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>Guice-Vaadin-Servlet</servlet-name>
+        <url-pattern>/*</url-pattern>
+    </servlet-mapping>
+</web-app>
+```
+
+##Setting up UI's
+
+All packages in packagesToScan and their sub-packages are scanned for Vaadin-UI's. These UI's need to have a 
+GuiceUI-annotation. 
+
+```java
+@com.vaadin.guice.annotation.GuiceUI
+public class MyUI extends com.vaadin.ui.UI {
+}
+```
+
+In order to set up a Vaadin-Navigator, a 'viewContainer' is to be configured. A viewContainer is the second parameter
+to the Navigator's constructor.
+
+```java
+public class MyViewContainer extends Panel {
+}
+```
+
+```java
+@com.vaadin.guice.annotation.GuiceUI(viewContainer = MyViewContainer.class)
+public class MyUI extends com.vaadin.ui.UI {
+    
+    @javax.inject.Inject
+    private MyViewContainer myViewContainer;
+    
+    public void init(com.vaadin.server.VaadinRequest request){
+        
+    }
+}
+```
+
+```java
+@com.vaadin.guice.annotation.GuiceUI
+public class MyUI extends com.vaadin.ui.UI {
+
+    
+
+    public void init(com.vaadin.server.VaadinRequest request){
+        com.vaadin.navigator.Navigator navigator = new com.vaadin.navigator.Navigator(this)   
+    }
+}
+```
 
 Copyright 2015-2017 Vaadin Ltd.
 

@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
  *
  * @author Bernd Hopp (bernd@vaadin.com)
  * @see com.google.inject.util.Modules#override(Module...)
- *
+ * <p>
  * <pre>
  * &#064;OverrideBindings
  * public class OverwritingModule extends AbstractModule {
