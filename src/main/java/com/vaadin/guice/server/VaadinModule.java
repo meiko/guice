@@ -2,6 +2,7 @@ package com.vaadin.guice.server;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Binding;
+import com.google.inject.Injector;
 import com.google.inject.TypeLiteral;
 import com.google.inject.matcher.AbstractMatcher;
 import com.google.inject.matcher.Matchers;
@@ -22,15 +23,18 @@ import com.vaadin.server.UIProvider;
 import com.vaadin.server.VaadinService;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.UI;
+import org.reflections.Reflections;
 
 import static com.google.inject.multibindings.Multibinder.newSetBinder;
 
 class VaadinModule extends AbstractModule {
 
     private final GuiceVaadinServlet guiceVaadinServlet;
+    private final Reflections reflections;
 
-    VaadinModule(GuiceVaadinServlet GuiceVaadinServlet) {
+    VaadinModule(GuiceVaadinServlet GuiceVaadinServlet, Reflections reflections) {
         this.guiceVaadinServlet = GuiceVaadinServlet;
+        this.reflections = reflections;
     }
 
     @Override
@@ -45,6 +49,8 @@ class VaadinModule extends AbstractModule {
         bind(VaadinSession.class).toProvider(guiceVaadinServlet.getVaadinSessionProvider());
         bind(UI.class).toProvider(guiceVaadinServlet.getCurrentUIProvider());
         bind(VaadinService.class).toProvider(guiceVaadinServlet.getVaadinServiceProvider());
+        bind(Reflections.class).toInstance(reflections);
+        bind(Injector.class).toProvider(guiceVaadinServlet::getInjector);
 
         final Multibinder<View> viewMultibinder = newSetBinder(binder(), View.class);
 
