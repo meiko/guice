@@ -39,8 +39,7 @@ class VaadinModule extends AbstractModule {
         bind(VaadinSession.class).toProvider(guiceVaadinServlet.getVaadinSessionProvider());
         bind(UI.class).toProvider(guiceVaadinServlet.getCurrentUIProvider());
         bind(VaadinService.class).toProvider(guiceVaadinServlet.getVaadinServiceProvider());
-        bind(Reflections.class).toInstance(reflections);
-        bind(Injector.class).toProvider(guiceVaadinServlet::getInjector);
+        bind(Reflections.class).toProvider(() -> reflections);
 
         final Multibinder<View> viewMultibinder = newSetBinder(binder(), View.class);
 
