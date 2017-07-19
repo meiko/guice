@@ -1,20 +1,12 @@
 package com.vaadin.guice.server;
 
 import com.google.inject.ConfigurationException;
-
-import com.vaadin.guice.testClasses.ASecondImplementation;
-import com.vaadin.guice.testClasses.AnImplementation;
-import com.vaadin.guice.testClasses.AnInterface;
-import com.vaadin.guice.testClasses.AnotherInterface;
-import com.vaadin.guice.testClasses.AnotherInterfaceImplementation;
-
+import com.vaadin.guice.testClasses.*;
 import org.junit.Test;
 import org.reflections.Reflections;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class OverrideBindingsTest {
 

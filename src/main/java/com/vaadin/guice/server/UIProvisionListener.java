@@ -1,10 +1,8 @@
 package com.vaadin.guice.server;
 
 import com.google.inject.Binding;
-import com.google.inject.Injector;
 import com.google.inject.matcher.AbstractMatcher;
 import com.google.inject.spi.ProvisionListener;
-
 import com.vaadin.guice.annotation.GuiceUI;
 import com.vaadin.guice.annotation.UIScope;
 import com.vaadin.navigator.View;

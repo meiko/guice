@@ -3,13 +3,10 @@ package com.vaadin.guice.server;
 import com.vaadin.guice.testClasses.*;
 import com.vaadin.server.ServiceException;
 import com.vaadin.server.VaadinSession;
-
 import com.vaadin.ui.UI;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
 public class UIScopeTest extends ScopeTestBase {

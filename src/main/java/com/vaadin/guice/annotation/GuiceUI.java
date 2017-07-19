@@ -1,7 +1,6 @@
 package com.vaadin.guice.annotation;
 
 import com.google.inject.ScopeAnnotation;
-
 import com.vaadin.guice.server.GuiceNavigator;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;

@@ -2,11 +2,7 @@ package com.vaadin.guice.annotation;
 
 import com.google.inject.ScopeAnnotation;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * This annotation will put elements in guice's 'UI'-scope, so for every {@link com.vaadin.ui.UI}

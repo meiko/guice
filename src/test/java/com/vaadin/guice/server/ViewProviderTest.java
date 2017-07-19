@@ -1,13 +1,11 @@
 package com.vaadin.guice.server;
 
 import com.google.inject.Provider;
-
 import com.vaadin.navigator.View;
 import com.vaadin.server.ServiceException;
 import com.vaadin.server.VaadinService;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.UI;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.reflections.Reflections;

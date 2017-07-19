@@ -1,49 +1,22 @@
 package com.vaadin.guice.server;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.Provider;
-import com.google.inject.TypeLiteral;
-
-import com.vaadin.guice.annotation.ForUI;
-import com.vaadin.guice.annotation.GuiceUI;
-import com.vaadin.guice.annotation.Import;
-import com.vaadin.guice.annotation.OverrideBindings;
-import com.vaadin.guice.annotation.PackagesToScan;
+import com.google.inject.*;
+import com.vaadin.guice.annotation.*;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.server.DeploymentConfiguration;
-import com.vaadin.server.ServiceException;
-import com.vaadin.server.SessionInitEvent;
-import com.vaadin.server.SessionInitListener;
-import com.vaadin.server.VaadinService;
-import com.vaadin.server.VaadinServiceInitListener;
-import com.vaadin.server.VaadinServlet;
-import com.vaadin.server.VaadinServletService;
-import com.vaadin.server.VaadinSession;
+import com.vaadin.server.*;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.UI;
-
 import org.reflections.Reflections;
 
+import javax.servlet.ServletException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
-import javax.servlet.ServletException;
-
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Preconditions.*;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.concat;
 import static com.google.inject.Guice.createInjector;

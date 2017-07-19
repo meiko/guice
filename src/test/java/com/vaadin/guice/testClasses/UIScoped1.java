@@ -1,7 +1,6 @@
 package com.vaadin.guice.testClasses;
 
 import com.google.inject.Inject;
-
 import com.vaadin.guice.annotation.UIScope;
 
 @UIScope
