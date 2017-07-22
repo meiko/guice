@@ -2,6 +2,8 @@ package com.vaadin.guice.annotation;
 
 import com.google.inject.ScopeAnnotation;
 
+import com.vaadin.navigator.View;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
@@ -28,9 +30,8 @@ import java.lang.annotation.Target;
 public @interface GuiceView {
 
     /**
-     * The name of the view. This is the name that is to be passed to the {@link
-     * com.vaadin.navigator.Navigator} when navigating to the view. There can be multiple views with
-     * the same name as long as they belong to separate UI subclasses.
+     * The name of the view. This is the name that the view is registered with when calling {@link
+     * com.vaadin.navigator.Navigator#addView(String, View)}.
      */
     String value();
 }
