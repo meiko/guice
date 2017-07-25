@@ -61,7 +61,6 @@ class GuiceViewProvider implements ViewProvider {
 
     @Override
     public View getView(String viewName) {
-
         Class<? extends View> viewClass = viewNamesToViewClassesMap.get(viewName);
 
         return guiceVaadinServlet.getInjector().getInstance(viewClass);

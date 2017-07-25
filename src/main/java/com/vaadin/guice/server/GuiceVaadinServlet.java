@@ -10,7 +10,6 @@ import com.vaadin.guice.annotation.GuiceUI;
 import com.vaadin.guice.annotation.Import;
 import com.vaadin.guice.annotation.OverrideBindings;
 import com.vaadin.guice.annotation.PackagesToScan;
-import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.DeploymentConfiguration;
@@ -42,7 +41,6 @@ import javax.servlet.ServletException;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.concat;
 import static com.google.inject.Guice.createInjector;
@@ -74,7 +72,6 @@ GuiceVaadinServlet extends VaadinServlet implements SessionInitListener {
     private Provider<VaadinService> vaadinServiceProvider;
     private Injector injector;
     private VaadinSessionScope vaadinSessionScoper;
-    private ViewScope viewScoper;
     private Set<Class<? extends VaadinServiceInitListener>> vaadinServiceInitListeners;
 
     public GuiceVaadinServlet() {
@@ -106,7 +103,7 @@ GuiceVaadinServlet extends VaadinServlet implements SessionInitListener {
             Reflections reflections,
             Annotation[] annotations
     ) throws ReflectiveOperationException {
-        setup(vaadinSessionProvider, currentUIProvider, currentViewProvider, vaadinServiceProvider, reflections, annotations);
+        setup(vaadinSessionProvider, currentUIProvider, vaadinServiceProvider, reflections, annotations);
     }
 
     private static Map<Class<? extends UI>, Set<Class<? extends ViewChangeListener>>> getViewChangeListenerClasses(Reflections reflections, Set<Class<? extends UI>> uiClasses) {
@@ -159,13 +156,6 @@ GuiceVaadinServlet extends VaadinServlet implements SessionInitListener {
         setup(
                 VaadinSession::getCurrent,
                 UI::getCurrent,
-                () -> {
-                    final Navigator navigator = UI.getCurrent().getNavigator();
-
-                    checkState(navigator != null);
-
-                    return navigator.getCurrentView();
-                },
                 VaadinService::getCurrent,
                 reflections,
                 annotations
@@ -175,7 +165,6 @@ GuiceVaadinServlet extends VaadinServlet implements SessionInitListener {
     private void setup(
             Provider<VaadinSession> vaadinSessionProvider,
             Provider<UI> currentUIProvider,
-            Provider<View> currentViewProvider,
             Provider<VaadinService> vaadinServiceProvider,
             Reflections reflections,
             Annotation[] annotations
@@ -223,13 +212,12 @@ GuiceVaadinServlet extends VaadinServlet implements SessionInitListener {
         this.views = views;
 
         this.uiScoper = new UIScope(vaadinSessionProvider, currentUIProvider);
-        this.viewScoper = new ViewScope(vaadinSessionProvider, currentViewProvider);
         this.vaadinSessionScoper = new VaadinSessionScope(vaadinSessionProvider);
         this.viewProvider = new GuiceViewProvider(views, this);
         this.guiceUIProvider = new GuiceUIProvider(this);
 
         //sets up the basic vaadin stuff like UIProvider
-        VaadinModule vaadinModule = new VaadinModule(this, this::getInjector);
+        VaadinModule vaadinModule = new VaadinModule(this);
 
         this.injector = createInjector(vaadinModule, combinedModules);
     }
@@ -287,10 +275,6 @@ GuiceVaadinServlet extends VaadinServlet implements SessionInitListener {
 
     VaadinSessionScope getVaadinSessionScoper() {
         return vaadinSessionScoper;
-    }
-
-    ViewScope getViewScoper() {
-        return viewScoper;
     }
 
     Iterator<VaadinServiceInitListener> getServiceInitListeners() {
