@@ -229,7 +229,7 @@ GuiceVaadinServlet extends VaadinServlet implements SessionInitListener {
         this.guiceUIProvider = new GuiceUIProvider(this);
 
         //sets up the basic vaadin stuff like UIProvider
-        VaadinModule vaadinModule = new VaadinModule(this);
+        VaadinModule vaadinModule = new VaadinModule(this, this::getInjector);
 
         this.injector = createInjector(vaadinModule, combinedModules);
     }

@@ -1,8 +1,12 @@
 package com.vaadin.guice.server;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Injector;
+import com.google.inject.Provider;
 import com.google.inject.multibindings.Multibinder;
-import com.vaadin.guice.annotation.*;
+
+import com.vaadin.guice.annotation.GuiceUI;
+import com.vaadin.guice.annotation.GuiceView;
 import com.vaadin.guice.annotation.UIScope;
 import com.vaadin.guice.annotation.VaadinSessionScope;
 import com.vaadin.guice.annotation.ViewScope;
@@ -13,14 +17,17 @@ import com.vaadin.server.VaadinService;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.UI;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.inject.multibindings.Multibinder.newSetBinder;
 
 class VaadinModule extends AbstractModule {
 
     private final GuiceVaadinServlet guiceVaadinServlet;
+    private final Provider<Injector> injectorProvider;
 
-    VaadinModule(GuiceVaadinServlet GuiceVaadinServlet) {
+    VaadinModule(GuiceVaadinServlet GuiceVaadinServlet, Provider<Injector> injectorProvider) {
         this.guiceVaadinServlet = GuiceVaadinServlet;
+        this.injectorProvider = injectorProvider;
     }
 
     @Override
@@ -36,6 +43,10 @@ class VaadinModule extends AbstractModule {
         bind(UI.class).toProvider(guiceVaadinServlet.getCurrentUIProvider());
         bind(VaadinService.class).toProvider(guiceVaadinServlet.getVaadinServiceProvider());
 
+        for (Class<? extends UI> uiClass : guiceVaadinServlet.getUis()) {
+            bindUI(uiClass);
+        }
+
         final Multibinder<View> viewMultibinder = newSetBinder(binder(), View.class);
 
         guiceVaadinServlet.getViews().forEach(view -> viewMultibinder.addBinding().to(view));
@@ -43,9 +54,30 @@ class VaadinModule extends AbstractModule {
         UIProvisionListener uiProvisionListener = new UIProvisionListener(guiceVaadinServlet);
 
         bindListener(uiProvisionListener, uiProvisionListener);
+    }
 
-        ViewProvisionListener viewProvisionListener = new ViewProvisionListener(guiceVaadinServlet);
+    private <T extends UI> void bindUI(Class<T> uiClass){
 
-        bindListener(viewProvisionListener, viewProvisionListener);
+        try {
+            checkArgument(uiClass.getConstructors().length == 1);
+
+            uiClass.getConstructor();
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+
+        bind(uiClass).toProvider(() -> {
+            try {
+                T ui = uiClass.newInstance();
+
+                UI.setCurrent(ui);
+
+                injectorProvider.get().injectMembers(ui);
+
+                return ui;
+            } catch (InstantiationException | IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 }

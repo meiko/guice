@@ -34,19 +34,8 @@ final class UIProvisionListener extends AbstractMatcher<Binding<?>> implements P
 
     @Override
     public <T> void onProvision(ProvisionInvocation<T> provision) {
-
-        UI ui;
-
-        synchronized (servlet.getUiScoper()) {
-            try {
-                ui = (UI) provision.provision();
-                process(ui);
-                servlet.getUiScoper().endInit(ui);
-            } catch (RuntimeException e) {
-                servlet.getUiScoper().rollback();
-                throw e;
-            }
-        }
+        UI ui = (UI) provision.provision();
+        process(ui);
     }
 
     private void process(UI ui) {
@@ -95,11 +84,11 @@ final class UIProvisionListener extends AbstractMatcher<Binding<?>> implements P
                 navigator.init(ui, (SingleComponentContainer) defaultView);
             } else {
                 throw new IllegalArgumentException(
-                        format(
-                                "%s is set as viewContainer() in @GuiceUI of %s, must be either ComponentContainer, SingleComponentContainer or ViewDisplay",
-                                viewContainerClass,
-                                uiClass
-                        )
+                    format(
+                        "%s is set as viewContainer() in @GuiceUI of %s, must be either ComponentContainer, SingleComponentContainer or ViewDisplay",
+                        viewContainerClass,
+                        uiClass
+                    )
                 );
             }
 
