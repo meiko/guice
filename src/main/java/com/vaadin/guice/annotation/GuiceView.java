@@ -2,6 +2,8 @@ package com.vaadin.guice.annotation;
 
 import com.google.inject.ScopeAnnotation;
 
+import com.vaadin.ui.UI;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
@@ -48,4 +50,10 @@ public @interface GuiceView {
     * determining if this view is navigated to in case an error occurs.
     * */
     boolean isErrorView() default false;
+
+    /**
+     * A list of {@link UI}'s that the view will be attached to. If not set, the
+     * view will be attached to all UI's
+     */
+    Class<? extends UI>[] applicableUIs() default {};
 }

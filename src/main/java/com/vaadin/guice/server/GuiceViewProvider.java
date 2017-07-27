@@ -1,16 +1,22 @@
 package com.vaadin.guice.server;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSortedSet;
+
 import com.vaadin.guice.annotation.GuiceView;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewProvider;
-import com.vaadin.server.*;
+import com.vaadin.server.ServiceException;
+import com.vaadin.server.SessionDestroyEvent;
+import com.vaadin.server.SessionDestroyListener;
+import com.vaadin.server.SessionInitEvent;
+import com.vaadin.server.SessionInitListener;
+import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.UI;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.NavigableSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -37,15 +43,12 @@ class GuiceViewProvider implements ViewProvider, SessionDestroyListener, Session
     private final Map<String, Class<? extends View>> viewNamesToViewClassesMap;
     private final GuiceVaadin guiceVaadin;
     private final Map<VaadinSession, Map<UI, Map<String, View>>> viewsBySessionMap;
-    private final NavigableSet<String> viewNames;
 
     GuiceViewProvider(Set<Class<? extends View>> viewClasses, GuiceVaadin guiceVaadin) {
 
         viewNamesToViewClassesMap = scanForViews(viewClasses);
+
         this.guiceVaadin = guiceVaadin;
-        // Set of view names sorted by their natural ordering (lexicographic).
-        // This is useful for quickly looking up views by name
-        viewNames = ImmutableSortedSet.copyOf(viewNamesToViewClassesMap.keySet());
 
         viewsBySessionMap = new ConcurrentHashMap<VaadinSession, Map<UI, Map<String, View>>>();
     }
@@ -92,13 +95,25 @@ class GuiceViewProvider implements ViewProvider, SessionDestroyListener, Session
 
         final String viewName = removeParametersFromViewName(viewAndParameters);
 
-        return viewNames.contains(viewName) ? viewName : null;
+        final Class<? extends View> viewClass = viewNamesToViewClassesMap.get(viewName);
+
+        if (viewClass == null) {
+            return null;
+        }
+
+        final GuiceView annotation = viewClass.getAnnotation(GuiceView.class);
+
+        checkState(annotation != null);
+
+        final List<Class<? extends UI>> applicableUIs = Arrays.asList(annotation.applicableUIs());
+
+        boolean currentUIApplies = applicableUIs.isEmpty() || applicableUIs.contains(UI.getCurrent().getClass());
+
+        return currentUIApplies ? viewName : null;
     }
 
     @Override
     public View getView(String viewName) {
-        checkArgument(viewNames.contains(viewName), "%s is not a registered view-name", viewName);
-
         VaadinSession session = VaadinSession.getCurrent();
 
         Map<UI, Map<String, View>> viewsByUI = viewsBySessionMap.get(session);
@@ -106,7 +121,7 @@ class GuiceViewProvider implements ViewProvider, SessionDestroyListener, Session
         Map<String, View> views = viewsByUI.get(guiceVaadin.getCurrentUIProvider().get());
 
         if (views == null) {
-            views = new HashMap<String, View>(viewNames.size());
+            views = new HashMap<String, View>(viewNamesToViewClassesMap.size());
             viewsByUI.put(guiceVaadin.getCurrentUIProvider().get(), views);
         }
 
