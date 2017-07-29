@@ -264,7 +264,7 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
 
     private Optional<Module> createModule(Class<? extends Module> moduleClass, Reflections reflections, Annotation annotation) {
 
-        if(isAbstract(moduleClass.getModifiers())){
+        if (isAbstract(moduleClass.getModifiers())) {
             return Optional.empty();
         }
 
@@ -311,12 +311,12 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         return checkNotNull(injector, "injector is not set up yet");
     }
 
-    boolean isNavigableForCurrentUI(Class<? extends View> viewClass){
+    boolean isNavigableForCurrentUI(Class<? extends View> viewClass) {
         checkNotNull(viewClass);
 
         ForUI forUI = viewClass.getAnnotation(ForUI.class);
 
-        if(forUI == null){
+        if (forUI == null) {
             return true;
         }
 
