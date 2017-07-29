@@ -28,32 +28,16 @@ class UIProvider<T extends UI> implements Provider<T> {
     @Override
     public T get() {
         try {
+            checkState(UI.getCurrent() == null);
 
             T ui = uiClass.newInstance();
 
             //current ui must be set in order for the UIScope to work, so we have to to it this way
             UI.setCurrent(ui);
 
-            guiceVaadinServlet.getInjector().injectMembers(ui);
-
             GuiceUI annotation = uiClass.getAnnotation(GuiceUI.class);
 
             checkState(annotation != null);
-
-            Class<? extends Component> contentClass = annotation.content();
-
-            if (!contentClass.equals(Component.class)) {
-                checkState(
-                        contentClass.isAnnotationPresent(com.vaadin.guice.annotation.UIScope.class),
-                        "%s is annotated with having %s as it's viewContainer, but this class does not have a @UIScope annotation. " +
-                                "ViewContainers must be put in UIScope",
-                        uiClass, contentClass
-                );
-
-                Component content = guiceVaadinServlet.getInjector().getInstance(contentClass);
-
-                ui.setContent(content);
-            }
 
             Class<? extends Component> viewContainerClass = annotation.viewContainer();
 
@@ -106,6 +90,23 @@ class UIProvider<T extends UI> implements Provider<T> {
 
                 ui.setNavigator(navigator);
             }
+
+            Class<? extends Component> contentClass = annotation.content();
+
+            if (!contentClass.equals(Component.class)) {
+                checkState(
+                        contentClass.isAnnotationPresent(com.vaadin.guice.annotation.UIScope.class),
+                        "%s is annotated with having %s as it's viewContainer, but this class does not have a @UIScope annotation. " +
+                                "ViewContainers must be put in UIScope",
+                        uiClass, contentClass
+                );
+
+                Component content = guiceVaadinServlet.getInjector().getInstance(contentClass);
+
+                ui.setContent(content);
+            }
+
+            guiceVaadinServlet.getInjector().injectMembers(ui);
 
             return ui;
         } catch (InstantiationException | IllegalAccessException e) {
