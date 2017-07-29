@@ -55,9 +55,9 @@ class GuiceViewProvider implements ViewProvider {
         //view-names are case-insensitive
         viewName = viewName.toLowerCase();
 
-        //if no view is registered under this name, null is to be returned
         final Class<? extends View> viewClass = viewNamesToViewClassesMap.get(viewName);
 
+        //if no view is registered under this name, null is to be returned
         if (viewClass == null) {
             return null;
         }

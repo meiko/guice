@@ -25,7 +25,6 @@ import static com.google.common.base.Preconditions.checkState;
 class GuiceUIProvider extends UIProvider {
 
     private final Map<String, Class<? extends UI>> pathToUIMap;
-    private final Map<String, Class<? extends UI>> wildcardPathToUIMap;
     private final GuiceVaadinServlet guiceVaadinServlet;
 
     GuiceUIProvider(GuiceVaadinServlet GuiceVaadinServlet) {
@@ -35,7 +34,6 @@ class GuiceUIProvider extends UIProvider {
         logger.info("Checking the application context for Vaadin UIs");
 
         pathToUIMap = new ConcurrentHashMap<>();
-        wildcardPathToUIMap = new ConcurrentHashMap<>();
 
         for (Class<? extends UI> uiClass : GuiceVaadinServlet.getUis()) {
 
@@ -53,6 +51,8 @@ class GuiceUIProvider extends UIProvider {
                 path = path.substring(0, path.length() - 1);
             }
 
+            path = path.toLowerCase();
+
             Class<? extends UI> existingUiForPath = pathToUIMap.get(path);
 
             checkState(
@@ -65,13 +65,7 @@ class GuiceUIProvider extends UIProvider {
             logger.log(Level.INFO, "Mapping Vaadin UI [{0}] to path [{1}]",
                     new Object[]{uiClass.getCanonicalName(), path});
 
-            if (path.endsWith("/*")) {
-                final String truncatedPath = path.substring(0, path.length() - 2);
-
-                wildcardPathToUIMap.put(truncatedPath, uiClass);
-            } else {
-                pathToUIMap.put(path, uiClass);
-            }
+            checkArgument(pathToUIMap.put(path, uiClass) == null, "multiple ui's mapped to the same path %s", path);
         }
 
         if (pathToUIMap.isEmpty()) {
@@ -84,19 +78,7 @@ class GuiceUIProvider extends UIProvider {
             UIClassSelectionEvent uiClassSelectionEvent) {
         String path = getPath(uiClassSelectionEvent);
 
-        Class<? extends UI> uiClass = pathToUIMap.get(path);
-
-        if (uiClass != null) {
-            return uiClass;
-        }
-
-        return wildcardPathToUIMap
-                .entrySet()
-                .stream()
-                .filter(entry -> path.startsWith(entry.getKey()))
-                .map(Map.Entry::getValue)
-                .findFirst()
-                .orElse(null);
+        return pathToUIMap.get(path);
     }
 
     private String getPath(UIClassSelectionEvent uiClassSelectionEvent) {
@@ -110,7 +92,7 @@ class GuiceUIProvider extends UIProvider {
             path = path.substring(0, path.length() - 1);
         }
 
-        return path;
+        return path.toLowerCase();
     }
 
     @Override
