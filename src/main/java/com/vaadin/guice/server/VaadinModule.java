@@ -5,6 +5,7 @@ import com.google.inject.TypeLiteral;
 
 import com.vaadin.guice.annotation.GuiceUI;
 import com.vaadin.guice.annotation.GuiceView;
+import com.vaadin.guice.annotation.NavigableViewClasses;
 import com.vaadin.guice.annotation.UIScope;
 import com.vaadin.guice.annotation.VaadinSessionScope;
 import com.vaadin.navigator.View;
@@ -39,9 +40,10 @@ class VaadinModule extends AbstractModule {
 
         guiceVaadinServlet.getUis().forEach(this::bindUI);
 
-        bind(new TypeLiteral<Set<Class<? extends View>>>() {
-        }).toProvider(new NavigableViewsProvider(guiceVaadinServlet));
+        final TypeLiteral<Set<Class<? extends View>>> setOfViewClassesType = new TypeLiteral<Set<Class<? extends View>>>() {
+        };
 
+        bind(setOfViewClassesType).annotatedWith(NavigableViewClasses.class).toProvider(new NavigableViewsProvider(guiceVaadinServlet));
     }
 
     private <T extends UI> void bindUI(Class<T> uiClass) {
