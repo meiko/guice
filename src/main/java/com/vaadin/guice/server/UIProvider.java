@@ -28,8 +28,10 @@ class UIProvider<T extends UI> implements Provider<T> {
     @Override
     public T get() {
         try {
+
             T ui = uiClass.newInstance();
 
+            //current ui must be set in order for the UIScope to work, so we have to to it this way
             UI.setCurrent(ui);
 
             guiceVaadinServlet.getInjector().injectMembers(ui);
@@ -63,7 +65,6 @@ class UIProvider<T extends UI> implements Provider<T> {
                                 "ViewContainers must be put in UIScope",
                         uiClass, viewContainerClass
                 );
-
 
                 Component defaultView = guiceVaadinServlet.getInjector().getInstance(viewContainerClass);
 
@@ -109,6 +110,8 @@ class UIProvider<T extends UI> implements Provider<T> {
             return ui;
         } catch (InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
+        } finally {
+            UI.setCurrent(null);
         }
     }
 }

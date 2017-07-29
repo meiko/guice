@@ -16,6 +16,7 @@ import com.vaadin.server.DeploymentConfiguration;
 import com.vaadin.server.ServiceException;
 import com.vaadin.server.SessionInitEvent;
 import com.vaadin.server.SessionInitListener;
+import com.vaadin.server.UIProvider;
 import com.vaadin.server.VaadinService;
 import com.vaadin.server.VaadinServiceInitListener;
 import com.vaadin.server.VaadinServlet;
@@ -30,13 +31,15 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -56,8 +59,8 @@ import static java.util.stream.Collectors.toSet;
  *
  * @author Bernd Hopp (bernd@vaadin.com)
  */
-public class
-GuiceVaadinServlet extends VaadinServlet implements SessionInitListener {
+@SuppressWarnings("unused")
+public class GuiceVaadinServlet extends VaadinServlet implements SessionInitListener {
 
     private final Class<? super Provider<Injector>> injectorProviderType = new TypeLiteral<Provider<Injector>>() {
     }.getRawType();
@@ -74,108 +77,41 @@ GuiceVaadinServlet extends VaadinServlet implements SessionInitListener {
     private VaadinSessionScope vaadinSessionScoper;
     private Set<Class<? extends VaadinServiceInitListener>> vaadinServiceInitListeners;
 
-    public GuiceVaadinServlet() {
+    @Override
+    public void init(ServletConfig servletConfig) throws ServletException {
+        final String initParameter = servletConfig.getInitParameter("packagesToScan");
 
-        final String packagesToScan = getServletConfig().getInitParameter("packagesToScan");
+        final String[] packagesToScan;
 
-        if (!isNullOrEmpty(packagesToScan)) {
-            setup(packagesToScan.split(","));
+        if (!isNullOrEmpty(initParameter)) {
+            packagesToScan = initParameter.split(",");
         } else if (getClass().isAnnotationPresent(PackagesToScan.class)) {
-            setup(getClass().getAnnotation(PackagesToScan.class).value());
+            packagesToScan = getClass().getAnnotation(PackagesToScan.class).value();
         } else {
             throw new IllegalStateException("no packagesToScan-initParameter found and no @PackagesToScan-annotation present, please configure the packages to be scanned");
         }
-    }
 
-    GuiceVaadinServlet(String[] packagesToScan) {
-        setup(packagesToScan);
-    }
-
-    GuiceVaadinServlet(Reflections reflections) {
-        setup(reflections, getClass().getAnnotations());
-    }
-
-    GuiceVaadinServlet(
-            Provider<VaadinSession> vaadinSessionProvider,
-            Provider<UI> currentUIProvider,
-            Provider<View> currentViewProvider,
-            Provider<VaadinService> vaadinServiceProvider,
-            Reflections reflections,
-            Annotation[] annotations
-    ) throws ReflectiveOperationException {
-        setup(vaadinSessionProvider, currentUIProvider, vaadinServiceProvider, reflections, annotations);
-    }
-
-    private static Map<Class<? extends UI>, Set<Class<? extends ViewChangeListener>>> getViewChangeListenerClasses(Reflections reflections, Set<Class<? extends UI>> uiClasses) {
-
-        Map<Class<? extends UI>, Set<Class<? extends ViewChangeListener>>> viewChangeListenersByUI = uiClasses
-                .stream()
-                .collect(toMap(uiClass -> uiClass, uiClass -> new HashSet<>()));
-
-        for (Class<? extends UI> uiClass : uiClasses) {
-            viewChangeListenersByUI.put(uiClass, new HashSet<>());
-        }
-
-        for (Class<? extends ViewChangeListener> viewChangeListenerClass : reflections.getSubTypesOf(ViewChangeListener.class)) {
-
-            final ForUI annotation = viewChangeListenerClass.getAnnotation(ForUI.class);
-
-            if (annotation == null) {
-                viewChangeListenersByUI.values().forEach(listeners -> listeners.add(viewChangeListenerClass));
-            } else {
-                checkArgument(annotation.value().length > 0, "ForUI#value must contain one ore more UI-classes");
-
-                for (Class<? extends UI> applicableUiClass : annotation.value()) {
-                    final Set<Class<? extends ViewChangeListener>> viewChangeListenersForUI = viewChangeListenersByUI.get(applicableUiClass);
-
-                    checkArgument(
-                            viewChangeListenersForUI != null,
-                            "%s is listed as applicableUi in the @ForUI-annotation of %s, but is not annotated with @GuiceUI"
-                    );
-
-                    final Class<? extends Component> viewContainer = applicableUiClass.getAnnotation(GuiceUI.class).viewContainer();
-
-                    checkArgument(!viewContainer.equals(Component.class), "%s is annotated as @ForUI for %s, however viewContainer() is not set in @GuiceUI");
-
-                    viewChangeListenersForUI.add(viewChangeListenerClass);
-                }
-            }
-        }
-
-        return viewChangeListenersByUI;
-    }
-
-    private void setup(String[] packagesToScan) {
         Reflections reflections = new Reflections((Object[]) packagesToScan);
 
-        setup(reflections, getClass().getAnnotations());
-    }
-
-    //used for non-testing
-    private void setup(Reflections reflections, Annotation[] annotations) {
-        setup(
-                VaadinSession::getCurrent,
-                UI::getCurrent,
-                VaadinService::getCurrent,
-                reflections,
-                annotations
-        );
-    }
-
-    private void setup(
-            Provider<VaadinSession> vaadinSessionProvider,
-            Provider<UI> currentUIProvider,
-            Provider<VaadinService> vaadinServiceProvider,
-            Reflections reflections,
-            Annotation[] annotations
-    ) {
-
-        final Set<Module> modulesFromAnnotations = stream(annotations)
+        final Set<Module> modulesFromAnnotations = stream(getClass().getAnnotations())
                 .filter(annotation -> annotation.getClass().isAnnotationPresent(Import.class))
                 .map(annotation -> createModule(annotation.getClass().getAnnotation(Import.class).value(), reflections, annotation))
+                .map(Optional::get)
                 .collect(toSet());
 
-        final Set<Module> modulesFromPath = loadModulesFromPath(reflections, modulesFromAnnotations);
+        Set<Class<? extends Module>> modulesFromAnnotationClasses = modulesFromAnnotations
+                .stream()
+                .map(Module::getClass)
+                .collect(toSet());
+
+        final Set<Module> modulesFromPath = reflections
+                .getSubTypesOf(Module.class)
+                .stream()
+                .filter(moduleClass -> !modulesFromAnnotationClasses.contains(moduleClass))
+                .map(moduleClass -> createModule(moduleClass, reflections, null))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(toSet());
 
         Iterable<Module> allModules = concat(
                 modulesFromAnnotations,
@@ -200,19 +136,48 @@ GuiceVaadinServlet extends VaadinServlet implements SessionInitListener {
         */
         Module combinedModules = override(nonOverrideModules).with(overrideModules);
 
-        Set<Class<? extends View>> views = reflections.getSubTypesOf(View.class);
-
+        this.views = reflections.getSubTypesOf(View.class);
         this.uis = reflections.getSubTypesOf(UI.class);
-        this.viewChangeListeners = getViewChangeListenerClasses(reflections, uis);
+
+        this.viewChangeListeners = uis
+                .stream()
+                .collect(toMap(uiClass -> uiClass, uiClass -> new HashSet<>()));
+
+        uis.forEach(ui -> viewChangeListeners.put(ui, new HashSet<>()));
+
+        for (Class<? extends ViewChangeListener> viewChangeListenerClass : reflections.getSubTypesOf(ViewChangeListener.class)) {
+
+            final ForUI annotation = viewChangeListenerClass.getAnnotation(ForUI.class);
+
+            if (annotation == null) {
+                viewChangeListeners.values().forEach(listeners -> listeners.add(viewChangeListenerClass));
+            } else {
+                checkArgument(annotation.value().length > 0, "ForUI#value must contain one ore more UI-classes");
+
+                for (Class<? extends UI> applicableUiClass : annotation.value()) {
+                    final Set<Class<? extends ViewChangeListener>> viewChangeListenersForUI = viewChangeListeners.get(applicableUiClass);
+
+                    checkArgument(
+                            viewChangeListenersForUI != null,
+                            "%s is listed as applicableUi in the @ForUI-annotation of %s, but is not annotated with @GuiceUI"
+                    );
+
+                    final Class<? extends Component> viewContainer = applicableUiClass.getAnnotation(GuiceUI.class).viewContainer();
+
+                    checkArgument(!viewContainer.equals(Component.class), "%s is annotated as @ForUI for %s, however viewContainer() is not set in @GuiceUI");
+
+                    viewChangeListenersForUI.add(viewChangeListenerClass);
+                }
+            }
+        }
+
         this.vaadinServiceInitListeners = reflections.getSubTypesOf(VaadinServiceInitListener.class);
-        this.vaadinSessionProvider = vaadinSessionProvider;
-        this.currentUIProvider = currentUIProvider;
-        this.vaadinServiceProvider = vaadinServiceProvider;
+        this.vaadinSessionProvider = VaadinSession::getCurrent;
+        this.currentUIProvider = UI::getCurrent;
+        this.vaadinServiceProvider = VaadinService::getCurrent;
 
-        this.views = views;
-
-        this.uiScoper = new UIScope(vaadinSessionProvider, currentUIProvider);
-        this.vaadinSessionScoper = new VaadinSessionScope(vaadinSessionProvider);
+        this.uiScoper = new UIScope(VaadinSession::getCurrent, UI::getCurrent);
+        this.vaadinSessionScoper = new VaadinSessionScope(VaadinSession::getCurrent);
         this.viewProvider = new GuiceViewProvider(views, this);
         this.guiceUIProvider = new GuiceUIProvider(this);
 
@@ -220,6 +185,18 @@ GuiceVaadinServlet extends VaadinServlet implements SessionInitListener {
         VaadinModule vaadinModule = new VaadinModule(this);
 
         this.injector = createInjector(vaadinModule, combinedModules);
+
+        super.init(servletConfig);
+    }
+
+    @Override
+    protected void servletInitialized() throws ServletException {
+        VaadinService.getCurrent().addSessionInitListener(this);
+    }
+
+    @Override
+    protected VaadinServletService createServletService(DeploymentConfiguration deploymentConfiguration) throws ServiceException {
+        return new GuiceVaadinServletService(this, deploymentConfiguration);
     }
 
     @Override
@@ -229,9 +206,9 @@ GuiceVaadinServlet extends VaadinServlet implements SessionInitListener {
         // class in a UI class
         VaadinSession session = event.getSession();
 
-        session
-                .getUIProviders()
-                .clear();
+        for (UIProvider uiProvider : session.getUIProviders()) {
+            session.removeUIProvider(uiProvider);
+        }
 
         //set the GuiceUIProvider
         session.addUIProvider(guiceUIProvider);
@@ -285,26 +262,10 @@ GuiceVaadinServlet extends VaadinServlet implements SessionInitListener {
                 .iterator();
     }
 
-    @SuppressWarnings("unchecked")
-    private Set<Module> loadModulesFromPath(Reflections reflections, Set<Module> modulesFromAnnotations) {
-        Set<Class<? extends Module>> modulesFromAnnotationClasses = modulesFromAnnotations
-                .stream()
-                .map(Module::getClass)
-                .collect(toSet());
-
-        return reflections
-                .getSubTypesOf(Module.class)
-                .stream()
-                .filter(moduleClass -> !modulesFromAnnotationClasses.contains(moduleClass))
-                .map(moduleClass -> createModule(moduleClass, reflections, null))
-                .filter(Objects::nonNull)
-                .collect(toSet());
-    }
-
-    private Module createModule(Class<? extends Module> moduleClass, Reflections reflections, Annotation annotation) {
+    private Optional<Module> createModule(Class<? extends Module> moduleClass, Reflections reflections, Annotation annotation) {
 
         if(isAbstract(moduleClass.getModifiers())){
-            return null;
+            return Optional.empty();
         }
 
         for (Constructor<?> constructor : moduleClass.getDeclaredConstructors()) {
@@ -337,7 +298,7 @@ GuiceVaadinServlet extends VaadinServlet implements SessionInitListener {
             constructor.setAccessible(true);
 
             try {
-                return (Module) constructor.newInstance(initArgs);
+                return Optional.of((Module) constructor.newInstance(initArgs));
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                 throw new RuntimeException(e);
             }
@@ -346,17 +307,25 @@ GuiceVaadinServlet extends VaadinServlet implements SessionInitListener {
         throw new IllegalStateException("no suitable constructor found for %s" + moduleClass);
     }
 
-    @Override
-    protected void servletInitialized() throws ServletException {
-        VaadinService.getCurrent().addSessionInitListener(this);
-    }
-
-    @Override
-    protected VaadinServletService createServletService(DeploymentConfiguration deploymentConfiguration) throws ServiceException {
-        return new GuiceVaadinServletService(this, deploymentConfiguration, this);
-    }
-
     Injector getInjector() {
         return checkNotNull(injector, "injector is not set up yet");
+    }
+
+    boolean isNavigableForCurrentUI(Class<? extends View> viewClass){
+        checkNotNull(viewClass);
+
+        ForUI forUI = viewClass.getAnnotation(ForUI.class);
+
+        if(forUI == null){
+            return true;
+        }
+
+        final List<Class<? extends UI>> applicableUIs = Arrays.asList(forUI.value());
+
+        checkArgument(!applicableUIs.isEmpty(), "@ForUI#value cannot be empty");
+
+        final UI currentUI = checkNotNull(UI.getCurrent());
+
+        return applicableUIs.contains(currentUI.getClass());
     }
 }

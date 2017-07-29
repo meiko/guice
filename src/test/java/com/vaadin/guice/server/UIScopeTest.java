@@ -1,16 +1,7 @@
 package com.vaadin.guice.server;
 
-import com.vaadin.guice.testClasses.*;
-import com.vaadin.server.ServiceException;
-import com.vaadin.server.VaadinSession;
-import com.vaadin.ui.UI;
-import org.junit.Test;
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.when;
-
 public class UIScopeTest extends ScopeTestBase {
-
+/*
     @Test
     public void ui_scopes_should_not_overlap_in_same_session() throws ServiceException, NoSuchFieldException, IllegalAccessException {
         newSession();
@@ -190,4 +181,5 @@ public class UIScopeTest extends ScopeTestBase {
         setCurrentUi(target2);
         return target2;
     }
+    */
 }

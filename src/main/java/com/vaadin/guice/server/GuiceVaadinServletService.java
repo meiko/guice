@@ -10,9 +10,10 @@ class GuiceVaadinServletService extends VaadinServletService {
 
     private final GuiceVaadinServlet guiceVaadinServlet;
 
-    GuiceVaadinServletService(VaadinServlet servlet, DeploymentConfiguration deploymentConfiguration, GuiceVaadinServlet guiceVaadinServlet) throws ServiceException {
+    GuiceVaadinServletService(GuiceVaadinServlet servlet, DeploymentConfiguration deploymentConfiguration) throws ServiceException {
         super(servlet, deploymentConfiguration);
-        this.guiceVaadinServlet = guiceVaadinServlet;
+        this.guiceVaadinServlet = servlet;
+        this.init();
     }
 
     @Override

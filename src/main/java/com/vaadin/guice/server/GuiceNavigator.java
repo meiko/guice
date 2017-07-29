@@ -15,8 +15,6 @@ import com.vaadin.ui.UI;
  */
 public class GuiceNavigator extends Navigator {
 
-    private static final long serialVersionUID = -2693174603614667628L;
-
     void init(UI ui, ComponentContainer container) {
         init(ui, new ComponentContainerViewDisplay(container));
     }
@@ -28,5 +26,4 @@ public class GuiceNavigator extends Navigator {
     void init(UI ui, ViewDisplay display) {
         init(ui, new UriFragmentManager(ui.getPage()), display);
     }
-
 }

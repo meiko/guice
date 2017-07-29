@@ -1,7 +1,7 @@
 package com.vaadin.guice.server;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.multibindings.Multibinder;
+import com.google.inject.TypeLiteral;
 
 import com.vaadin.guice.annotation.GuiceUI;
 import com.vaadin.guice.annotation.GuiceView;
@@ -13,8 +13,9 @@ import com.vaadin.server.VaadinService;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.UI;
 
+import java.util.Set;
+
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.inject.multibindings.Multibinder.newSetBinder;
 
 class VaadinModule extends AbstractModule {
 
@@ -38,9 +39,8 @@ class VaadinModule extends AbstractModule {
 
         guiceVaadinServlet.getUis().forEach(this::bindUI);
 
-        final Multibinder<View> viewMultibinder = newSetBinder(binder(), View.class);
+        bind(new TypeLiteral<Set<Class<? extends View>>>(){}).toProvider(new NavigableViewsProvider(guiceVaadinServlet));
 
-        guiceVaadinServlet.getViews().forEach(view -> viewMultibinder.addBinding().to(view));
     }
 
     private <T extends UI> void bindUI(Class<T> uiClass){

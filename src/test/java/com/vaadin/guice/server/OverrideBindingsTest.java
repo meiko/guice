@@ -1,15 +1,7 @@
 package com.vaadin.guice.server;
 
-import com.google.inject.ConfigurationException;
-import com.vaadin.guice.testClasses.*;
-import org.junit.Test;
-import org.reflections.Reflections;
-
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.*;
-
 public class OverrideBindingsTest {
-
+/*
     @Test
     public void dynamically_loaded_modules_should_override() throws ReflectiveOperationException {
         GuiceVaadinServlet GuiceVaadinServlet = new GuiceVaadinServlet(new Reflections("com.vaadin.guice.testClasses", "com.vaadin.guice.override", "com.vaadin.guice.nonoverride"));
@@ -56,4 +48,5 @@ public class OverrideBindingsTest {
 
         GuiceVaadinServlet.getInjector().getInstance(AnotherInterface.class);
     }
+    */
 }
