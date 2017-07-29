@@ -9,9 +9,8 @@ import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * Marks an {@link java.lang.annotation.Annotation} as creator of a {@link Module}.
- * The module needs to have a standard-constructor or a constructor accepting
- * the annotated Annotation as a parameter
+ * Marks an {@link java.lang.annotation.Annotation} as creator of a {@link Module}. The module needs
+ * to have a standard-constructor or a constructor accepting the annotated Annotation as a parameter
  * <p>
  * <pre>
  * &#064;Import(MyModule.class)

@@ -1,6 +1,9 @@
 package com.vaadin.guice.server;
 
-import com.vaadin.server.*;
+import com.vaadin.server.DeploymentConfiguration;
+import com.vaadin.server.ServiceException;
+import com.vaadin.server.VaadinServiceInitListener;
+import com.vaadin.server.VaadinServletService;
 
 import java.util.Iterator;
 

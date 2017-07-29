@@ -7,8 +7,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * Annotation that adds a ViewChangeListener to only a restricted set of {@link UI}'s.
- * If this annotation is not present, the ViewChangeListener will be attached to all UI's
+ * Annotation that adds a ViewChangeListener to only a restricted set of {@link UI}'s. If this
+ * annotation is not present, the ViewChangeListener will be attached to all UI's
  * <pre>
  * &#064;ForUI(MyUI.class) // will only be attached to MyUI
  * public class MyViewChangeListener implements ViewChangeListener{

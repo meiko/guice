@@ -11,7 +11,7 @@ class NavigableViewsProvider implements Provider<Set<Class<? extends View>>> {
 
     private final GuiceVaadinServlet guiceVaadinServlet;
 
-    NavigableViewsProvider(GuiceVaadinServlet guiceVaadinServlet){
+    NavigableViewsProvider(GuiceVaadinServlet guiceVaadinServlet) {
         this.guiceVaadinServlet = guiceVaadinServlet;
     }
 

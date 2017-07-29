@@ -39,11 +39,12 @@ class VaadinModule extends AbstractModule {
 
         guiceVaadinServlet.getUis().forEach(this::bindUI);
 
-        bind(new TypeLiteral<Set<Class<? extends View>>>(){}).toProvider(new NavigableViewsProvider(guiceVaadinServlet));
+        bind(new TypeLiteral<Set<Class<? extends View>>>() {
+        }).toProvider(new NavigableViewsProvider(guiceVaadinServlet));
 
     }
 
-    private <T extends UI> void bindUI(Class<T> uiClass){
+    private <T extends UI> void bindUI(Class<T> uiClass) {
 
         try {
             checkArgument(uiClass.getConstructors().length == 1);

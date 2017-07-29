@@ -16,8 +16,8 @@ import java.lang.annotation.Target;
 public @interface PackagesToScan {
 
     /**
-     * A list of all packages that should be scanned for {@link UI}s, {@link View}s,
-     * {@link ViewChangeListener}s and {@link Module}s.
+     * A list of all packages that should be scanned for {@link UI}s, {@link View}s, {@link
+     * ViewChangeListener}s and {@link Module}s.
      */
     String[] value();
 }

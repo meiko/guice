@@ -1,6 +1,7 @@
 package com.vaadin.guice.server;
 
 import com.google.inject.Provider;
+
 import com.vaadin.server.VaadinSession;
 
 class VaadinSessionScope extends ScopeBase<VaadinSessionScope.SingletonObject> {

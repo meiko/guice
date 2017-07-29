@@ -31,13 +31,13 @@ class GuiceViewProvider implements ViewProvider {
         viewClasses.forEach(c -> checkArgument(c.isAnnotationPresent(GuiceView.class), "GuiceView-annotation missing at %s", c));
 
         viewNamesToViewClassesMap = viewClasses
-            .stream()
-            .collect(
-                toMap(
-                        viewClass -> viewClass.getAnnotation(GuiceView.class).value().toLowerCase(),
-                        viewClass -> viewClass
-                )
-            );
+                .stream()
+                .collect(
+                        toMap(
+                                viewClass -> viewClass.getAnnotation(GuiceView.class).value().toLowerCase(),
+                                viewClass -> viewClass
+                        )
+                );
 
         this.guiceVaadinServlet = guiceVaadinServlet;
     }
@@ -58,7 +58,7 @@ class GuiceViewProvider implements ViewProvider {
         //if no view is registered under this name, null is to be returned
         final Class<? extends View> viewClass = viewNamesToViewClassesMap.get(viewName);
 
-        if(viewClass == null){
+        if (viewClass == null) {
             return null;
         }
 
