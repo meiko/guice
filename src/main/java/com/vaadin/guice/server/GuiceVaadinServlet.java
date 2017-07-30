@@ -12,6 +12,7 @@ import com.vaadin.guice.annotation.OverrideBindings;
 import com.vaadin.guice.annotation.PackagesToScan;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.server.BootstrapListener;
 import com.vaadin.server.DeploymentConfiguration;
 import com.vaadin.server.ServiceException;
 import com.vaadin.server.SessionInitEvent;
@@ -76,6 +77,7 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
     private Injector injector;
     private VaadinSessionScope vaadinSessionScoper;
     private Set<Class<? extends VaadinServiceInitListener>> vaadinServiceInitListeners;
+    private Set<Class<? extends BootstrapListener>> bootStrapListenerClasses;
 
     @Override
     public void init(ServletConfig servletConfig) throws ServletException {
@@ -138,6 +140,7 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
 
         this.views = reflections.getSubTypesOf(View.class);
         this.uis = reflections.getSubTypesOf(UI.class);
+        this.bootStrapListenerClasses = reflections.getSubTypesOf(BootstrapListener.class);
 
         this.viewChangeListeners = uis
                 .stream()
@@ -212,6 +215,10 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
 
         //set the GuiceUIProvider
         session.addUIProvider(guiceUIProvider);
+
+        for (Class<? extends BootstrapListener> bootStrapListenerClass : bootStrapListenerClasses) {
+            session.addBootstrapListener(getInjector().getInstance(bootStrapListenerClass));
+        }
     }
 
     GuiceViewProvider getViewProvider() {
