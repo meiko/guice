@@ -68,11 +68,9 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
     private GuiceViewProvider viewProvider;
     private GuiceUIProvider guiceUIProvider;
     private UIScope uiScoper;
-    private Provider<VaadinSession> vaadinSessionProvider;
     private Set<Class<? extends UI>> uis;
     private Set<Class<? extends View>> views;
     private Map<Class<? extends UI>, Set<Class<? extends ViewChangeListener>>> viewChangeListeners;
-    private Provider<UI> currentUIProvider;
     private Provider<VaadinService> vaadinServiceProvider;
     private Injector injector;
     private VaadinSessionScope vaadinSessionScoper;
@@ -141,6 +139,12 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         this.views = reflections.getSubTypesOf(View.class);
         this.uis = reflections.getSubTypesOf(UI.class);
         this.bootStrapListenerClasses = reflections.getSubTypesOf(BootstrapListener.class);
+        this.vaadinServiceInitListeners = reflections.getSubTypesOf(VaadinServiceInitListener.class);
+        this.vaadinServiceProvider = VaadinService::getCurrent;
+        this.uiScoper = new UIScope(VaadinSession::getCurrent, UI::getCurrent);
+        this.vaadinSessionScoper = new VaadinSessionScope(VaadinSession::getCurrent);
+        this.viewProvider = new GuiceViewProvider(views, this);
+        this.guiceUIProvider = new GuiceUIProvider(this);
 
         this.viewChangeListeners = uis
                 .stream()
@@ -174,15 +178,6 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
             }
         }
 
-        this.vaadinServiceInitListeners = reflections.getSubTypesOf(VaadinServiceInitListener.class);
-        this.vaadinSessionProvider = VaadinSession::getCurrent;
-        this.currentUIProvider = UI::getCurrent;
-        this.vaadinServiceProvider = VaadinService::getCurrent;
-
-        this.uiScoper = new UIScope(VaadinSession::getCurrent, UI::getCurrent);
-        this.vaadinSessionScoper = new VaadinSessionScope(VaadinSession::getCurrent);
-        this.viewProvider = new GuiceViewProvider(views, this);
-        this.guiceUIProvider = new GuiceUIProvider(this);
 
         //sets up the basic vaadin stuff like UIProvider
         VaadinModule vaadinModule = new VaadinModule(this);
@@ -233,16 +228,8 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         return uiScoper;
     }
 
-    Provider<VaadinSession> getVaadinSessionProvider() {
-        return vaadinSessionProvider;
-    }
-
     Set<Class<? extends View>> getViews() {
         return views;
-    }
-
-    Provider<UI> getCurrentUIProvider() {
-        return currentUIProvider;
     }
 
     Provider<VaadinService> getVaadinServiceProvider() {

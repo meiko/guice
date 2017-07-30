@@ -9,9 +9,6 @@ import com.vaadin.guice.annotation.NavigableViewClasses;
 import com.vaadin.guice.annotation.UIScope;
 import com.vaadin.guice.annotation.VaadinSessionScope;
 import com.vaadin.navigator.View;
-import com.vaadin.navigator.ViewProvider;
-import com.vaadin.server.VaadinService;
-import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.UI;
 
 import java.util.Set;
@@ -32,11 +29,6 @@ class VaadinModule extends AbstractModule {
         bindScope(GuiceView.class, guiceVaadinServlet.getUiScoper());
         bindScope(GuiceUI.class, guiceVaadinServlet.getVaadinSessionScoper());
         bindScope(VaadinSessionScope.class, guiceVaadinServlet.getVaadinSessionScoper());
-        bind(GuiceUIProvider.class).toInstance(guiceVaadinServlet.getGuiceUIProvider());
-        bind(ViewProvider.class).toInstance(guiceVaadinServlet.getViewProvider());
-        bind(VaadinSession.class).toProvider(guiceVaadinServlet.getVaadinSessionProvider());
-        bind(UI.class).toProvider(guiceVaadinServlet.getCurrentUIProvider());
-        bind(VaadinService.class).toProvider(guiceVaadinServlet.getVaadinServiceProvider());
 
         guiceVaadinServlet.getUis().forEach(this::bindUI);
 
