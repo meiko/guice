@@ -3,6 +3,7 @@ package com.vaadin.guice.annotation;
 import com.google.inject.BindingAnnotation;
 
 import com.vaadin.navigator.View;
+import com.vaadin.ui.UI;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -11,9 +12,13 @@ import java.lang.annotation.Target;
 import java.util.Set;
 
 /**
- * this annotation is to be attached to a field or constructor-parameter that is to be injected by guice
+ * this annotation is to be attached to a field or constructor-parameter that is being injected by guice
  * and is a {@link Set} of {@link Class}es that extend {@link View}. This set will then contain all
- * classes that implement the View-interface and are navigable from the current UI.
+ * classes that implement the View-interface and are navigable from the current {@link UI}. A view-class is navigable
+ * if it is contained in the scanned packages, and is not restricted to other UIs with {@link ForUI}.
+ *
+ * @see PackagesToScan
+ * @see ForUI
  *
  * <pre>
  * &#064;GuiceUI // will only be attached to MyUI
