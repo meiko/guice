@@ -6,6 +6,7 @@ import com.vaadin.guice.server.GuiceNavigator;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewProvider;
+import com.vaadin.server.ErrorHandler;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.UI;
 
@@ -84,4 +85,11 @@ public @interface GuiceUI {
      * @see Navigator#setErrorProvider(ViewProvider)
      */
     Class<? extends ViewProvider> errorProvider() default ViewProvider.class;
+
+    /**
+     * the {@link UI}'s error-handler
+     *
+     * @see com.vaadin.server.AbstractClientConnector#setErrorHandler(ErrorHandler)
+     */
+    Class<? extends ErrorHandler> errorHandler() default ErrorHandler.class;
 }

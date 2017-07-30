@@ -7,6 +7,7 @@ import com.vaadin.guice.annotation.UIScope;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewDisplay;
 import com.vaadin.navigator.ViewProvider;
+import com.vaadin.server.ErrorHandler;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.ComponentContainer;
 import com.vaadin.ui.SingleComponentContainer;
@@ -41,7 +42,7 @@ class UIProvider<T extends UI> implements Provider<T> {
 
             Class<? extends Component> viewContainerClass = annotation.viewContainer();
 
-            if (!viewContainerClass.equals(Component.class)) {
+            if (!Component.class.equals(viewContainerClass)) {
 
                 checkState(
                         viewContainerClass.isAnnotationPresent(UIScope.class),
@@ -70,13 +71,13 @@ class UIProvider<T extends UI> implements Provider<T> {
                     );
                 }
 
-                if (!annotation.errorProvider().equals(ViewProvider.class)) {
+                if (!ViewProvider.class.equals(annotation.errorProvider())) {
                     checkArgument(annotation.errorView().equals(View.class), "GuiceUI#errorView and GuiceUI#errorProvider cannot be set both");
 
                     final ViewProvider errorProvider = guiceVaadinServlet.getInjector().getInstance(annotation.errorProvider());
 
                     navigator.setErrorProvider(errorProvider);
-                } else if (!annotation.errorView().equals(View.class)) {
+                } else if (!View.class.equals(annotation.errorView())) {
                     navigator.setErrorView(annotation.errorView());
                 }
 
@@ -93,7 +94,7 @@ class UIProvider<T extends UI> implements Provider<T> {
 
             Class<? extends Component> contentClass = annotation.content();
 
-            if (!contentClass.equals(Component.class)) {
+            if (!Component.class.equals(contentClass)) {
                 checkState(
                         contentClass.isAnnotationPresent(com.vaadin.guice.annotation.UIScope.class),
                         "%s is annotated with having %s as it's viewContainer, but this class does not have a @UIScope annotation. " +
@@ -104,6 +105,12 @@ class UIProvider<T extends UI> implements Provider<T> {
                 Component content = guiceVaadinServlet.getInjector().getInstance(contentClass);
 
                 ui.setContent(content);
+            }
+
+            if(!ErrorHandler.class.equals(annotation.errorHandler())){
+                ErrorHandler errorHandler = guiceVaadinServlet.getInjector().getInstance(annotation.errorHandler());
+
+                ui.setErrorHandler(errorHandler);
             }
 
             guiceVaadinServlet.getInjector().injectMembers(ui);
