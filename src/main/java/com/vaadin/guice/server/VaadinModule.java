@@ -39,13 +39,12 @@ class VaadinModule extends AbstractModule {
     }
 
     private <T extends UI> void bindUI(Class<T> uiClass) {
-
         try {
             checkArgument(uiClass.getConstructors().length == 1);
 
             uiClass.getConstructor();
         } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("no default constructor found in " + uiClass, e);
         }
 
         bind(uiClass).toProvider(new UIProvider<>(guiceVaadinServlet, uiClass));
