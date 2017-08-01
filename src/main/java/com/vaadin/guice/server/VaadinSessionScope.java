@@ -1,19 +1,26 @@
 package com.vaadin.guice.server;
 
+import com.google.inject.Key;
 import com.google.inject.Provider;
+import com.google.inject.Scope;
 
 import com.vaadin.server.VaadinSession;
 
-class VaadinSessionScope extends ScopeBase<VaadinSessionScope.SingletonObject> {
+import java.util.HashMap;
+import java.util.Map;
+import java.util.WeakHashMap;
 
-    VaadinSessionScope(Provider<VaadinSession> vaadinSessionProvider) {
-        super(() -> SingletonObject.INSTANCE, vaadinSessionProvider);
-    }
+class VaadinSessionScope implements Scope {
 
-    static final class SingletonObject {
-        static final SingletonObject INSTANCE = new SingletonObject();
+    private final Map<VaadinSession, Map<Key<?>, Object>> scopeMapsBySession = new WeakHashMap<>();
 
-        private SingletonObject() {
-        }
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> Provider<T> scope(Key<T> key, Provider<T> provider) {
+        return () -> {
+            final Map<Key<?>, Object> scopeMap = scopeMapsBySession.computeIfAbsent(VaadinSession.getCurrent(), v -> new HashMap<>());
+
+            return (T)scopeMap.computeIfAbsent(key, k -> provider.get());
+        };
     }
 }

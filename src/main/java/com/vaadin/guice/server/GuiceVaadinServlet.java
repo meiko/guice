@@ -141,8 +141,8 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         this.bootStrapListenerClasses = reflections.getSubTypesOf(BootstrapListener.class);
         this.vaadinServiceInitListeners = reflections.getSubTypesOf(VaadinServiceInitListener.class);
         this.vaadinServiceProvider = VaadinService::getCurrent;
-        this.uiScoper = new UIScope(VaadinSession::getCurrent, UI::getCurrent);
-        this.vaadinSessionScoper = new VaadinSessionScope(VaadinSession::getCurrent);
+        this.uiScoper = new UIScope();
+        this.vaadinSessionScoper = new VaadinSessionScope();
         this.viewProvider = new GuiceViewProvider(views, this);
         this.guiceUIProvider = new GuiceUIProvider(this);
 
