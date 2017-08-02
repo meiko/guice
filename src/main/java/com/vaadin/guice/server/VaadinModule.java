@@ -9,11 +9,8 @@ import com.vaadin.guice.annotation.NavigableViewClasses;
 import com.vaadin.guice.annotation.UIScope;
 import com.vaadin.guice.annotation.VaadinSessionScope;
 import com.vaadin.navigator.View;
-import com.vaadin.ui.UI;
 
 import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkArgument;
 
 class VaadinModule extends AbstractModule {
 
@@ -30,23 +27,13 @@ class VaadinModule extends AbstractModule {
         bindScope(GuiceUI.class, guiceVaadinServlet.getVaadinSessionScoper());
         bindScope(VaadinSessionScope.class, guiceVaadinServlet.getVaadinSessionScoper());
 
-        guiceVaadinServlet.getUis().forEach(this::bindUI);
+        UIProvider uiProvider = new UIProvider(guiceVaadinServlet);
+
+        bindListener(uiProvider, uiProvider);
 
         final TypeLiteral<Set<Class<? extends View>>> setOfViewClassesType = new TypeLiteral<Set<Class<? extends View>>>() {
         };
 
         bind(setOfViewClassesType).annotatedWith(NavigableViewClasses.class).toProvider(new NavigableViewsProvider(guiceVaadinServlet));
-    }
-
-    private <T extends UI> void bindUI(Class<T> uiClass) {
-        try {
-            checkArgument(uiClass.getConstructors().length == 1);
-
-            uiClass.getConstructor();
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException("no default constructor found in " + uiClass, e);
-        }
-
-        bind(uiClass).toProvider(new UIProvider<>(guiceVaadinServlet, uiClass));
     }
 }

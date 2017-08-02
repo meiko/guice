@@ -1,6 +1,8 @@
 package com.vaadin.guice.server;
 
-import com.google.inject.Provider;
+import com.google.inject.Binding;
+import com.google.inject.matcher.AbstractMatcher;
+import com.google.inject.spi.ProvisionListener;
 
 import com.vaadin.guice.annotation.GuiceUI;
 import com.vaadin.guice.annotation.UIScope;
@@ -16,31 +18,27 @@ import com.vaadin.ui.UI;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static java.lang.String.format;
+import static java.lang.reflect.Modifier.isAbstract;
 
-class UIProvider<T extends UI> implements Provider<T> {
+class UIProvider extends AbstractMatcher<Binding<?>> implements ProvisionListener {
     private final GuiceVaadinServlet guiceVaadinServlet;
-    private final Class<T> uiClass;
 
-    public UIProvider(GuiceVaadinServlet guiceVaadinServlet, Class<T> uiClass) {
+    public UIProvider(GuiceVaadinServlet guiceVaadinServlet) {
         this.guiceVaadinServlet = guiceVaadinServlet;
-        this.uiClass = uiClass;
     }
 
     @Override
-    public T get() {
-        T ui;
+    public boolean matches(Binding<?> binding) {
+        final Class<?> rawType = binding.getKey().getTypeLiteral().getRawType();
 
-        synchronized (guiceVaadinServlet.getUiScoper()){
-            try {
-                guiceVaadinServlet.getUiScoper().startScopeInit();
+        return UI.class.isAssignableFrom(rawType) && !isAbstract(rawType.getModifiers());
+    }
 
-                ui = guiceVaadinServlet.getInjector().getInstance(uiClass);
+    @Override
+    public <T> void onProvision(ProvisionInvocation<T> provisionInvocation) {
+        UI ui = (UI)provisionInvocation.provision();
 
-                guiceVaadinServlet.getUiScoper().flushInitialScopeSet(ui);
-            } finally {
-                guiceVaadinServlet.getUiScoper().endScopeInit();
-            }
-        }
+        final Class<? extends UI> uiClass = ui.getClass();
 
         GuiceUI annotation = uiClass.getAnnotation(GuiceUI.class);
 
@@ -120,7 +118,5 @@ class UIProvider<T extends UI> implements Provider<T> {
         }
 
         guiceVaadinServlet.getInjector().injectMembers(ui);
-
-        return ui;
     }
 }

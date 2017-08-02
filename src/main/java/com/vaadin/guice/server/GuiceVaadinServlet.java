@@ -47,6 +47,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.concat;
+import static com.google.common.collect.Sets.filter;
 import static com.google.inject.Guice.createInjector;
 import static com.google.inject.util.Modules.override;
 import static java.lang.reflect.Modifier.isAbstract;
@@ -71,7 +72,6 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
     private Set<Class<? extends UI>> uis;
     private Set<Class<? extends View>> views;
     private Map<Class<? extends UI>, Set<Class<? extends ViewChangeListener>>> viewChangeListeners;
-    private Provider<VaadinService> vaadinServiceProvider;
     private Injector injector;
     private VaadinSessionScope vaadinSessionScoper;
     private Set<Class<? extends VaadinServiceInitListener>> vaadinServiceInitListeners;
@@ -136,11 +136,10 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         */
         Module combinedModules = override(nonOverrideModules).with(overrideModules);
 
-        this.views = reflections.getSubTypesOf(View.class);
-        this.uis = reflections.getSubTypesOf(UI.class);
-        this.bootStrapListenerClasses = reflections.getSubTypesOf(BootstrapListener.class);
-        this.vaadinServiceInitListeners = reflections.getSubTypesOf(VaadinServiceInitListener.class);
-        this.vaadinServiceProvider = VaadinService::getCurrent;
+        this.views = nonAbstractSubtypes(reflections, View.class);
+        this.uis = nonAbstractSubtypes(reflections, UI.class);
+        this.bootStrapListenerClasses = nonAbstractSubtypes(reflections, BootstrapListener.class);
+        this.vaadinServiceInitListeners = nonAbstractSubtypes(reflections, VaadinServiceInitListener.class);
         this.uiScoper = new UIScope();
         this.vaadinSessionScoper = new VaadinSessionScope();
         this.viewProvider = new GuiceViewProvider(views, this);
@@ -187,6 +186,10 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         super.init(servletConfig);
     }
 
+    private <U> Set<Class<? extends U>> nonAbstractSubtypes(Reflections reflections, Class<U> type){
+        return filter(reflections.getSubTypesOf(type), clazz -> clazz != null && !isAbstract(clazz.getModifiers()));
+    }
+
     @Override
     protected void servletInitialized() throws ServletException {
         VaadinService.getCurrent().addSessionInitListener(this);
@@ -230,10 +233,6 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
 
     Set<Class<? extends View>> getViews() {
         return views;
-    }
-
-    Provider<VaadinService> getVaadinServiceProvider() {
-        return vaadinServiceProvider;
     }
 
     Set<Class<? extends UI>> getUis() {

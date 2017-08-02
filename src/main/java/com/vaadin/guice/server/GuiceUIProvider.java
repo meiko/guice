@@ -1,5 +1,7 @@
 package com.vaadin.guice.server;
 
+import com.google.inject.Injector;
+
 import com.vaadin.guice.annotation.GuiceUI;
 import com.vaadin.server.UIClassSelectionEvent;
 import com.vaadin.server.UICreateEvent;
@@ -96,7 +98,20 @@ class GuiceUIProvider extends UIProvider {
     }
 
     @Override
-    public UI createInstance(UICreateEvent event) {
-        return guiceVaadinServlet.getInjector().getInstance(event.getUIClass());
+    public synchronized UI createInstance(UICreateEvent event) {
+        final UIScope uiScoper = guiceVaadinServlet.getUiScoper();
+        final Injector injector = guiceVaadinServlet.getInjector();
+
+        try {
+            uiScoper.startScopeInit();
+
+            UI ui = injector.getInstance(event.getUIClass());
+
+            uiScoper.flushInitialScopeSet(ui);
+
+            return ui;
+        } finally {
+            uiScoper.endScopeInit();
+        }
     }
 }

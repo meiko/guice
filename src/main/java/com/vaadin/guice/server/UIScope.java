@@ -6,9 +6,9 @@ import com.google.inject.Scope;
 
 import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.UI;
-import com.vaadin.util.CurrentInstance;
 
 import java.util.Map;
+import java.util.UUID;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -27,12 +27,14 @@ class UIScope implements Scope {
         return () -> {
             Map<GUIID, Map<Key<?>, Object>> map = scopesBySession.computeIfAbsent(VaadinSession.getCurrent(), session -> new WeakHashMap<>());
 
-            GUIID guiid = CurrentInstance.get(GUIID.class);
+            GUIID guiid = currentGUIID;
 
             if(guiid == null){
                 UI ui = checkNotNull(UI.getCurrent());
 
                 guiid = checkNotNull(uiToUIID.get(ui));
+            } else {
+                checkState(UI.getCurrent() == null);
             }
 
             final Map<Key<?>, Object> scopedObjects = map.computeIfAbsent(guiid, id -> new ConcurrentHashMap<>());
@@ -52,6 +54,19 @@ class UIScope implements Scope {
     }
 
     void endScopeInit(){
-        CurrentInstance.set(GUIID.class, null);
+        currentGUIID = null;
+    }
+
+    static class GUIID {
+
+        private final UUID uiid;
+
+        GUIID() {
+            this.uiid = UUID.randomUUID();
+        }
+
+        public UUID getUiid() {
+            return uiid;
+        }
     }
 }
