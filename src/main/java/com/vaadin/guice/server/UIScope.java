@@ -7,10 +7,10 @@ import com.google.inject.Scope;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.UI;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.WeakHashMap;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
@@ -25,22 +25,25 @@ class UIScope implements Scope {
     @SuppressWarnings("unchecked")
     public <T> Provider<T> scope(Key<T> key, Provider<T> provider) {
         return () -> {
-            Map<GUIID, Map<Key<?>, Object>> map = scopesBySession.computeIfAbsent(VaadinSession.getCurrent(), session -> new WeakHashMap<>());
+            Map<GUIID, Map<Key<?>, Object>> uiScopesForCurrentVaadinSession = scopesBySession.computeIfAbsent(VaadinSession.getCurrent(), session -> new WeakHashMap<>());
 
-            GUIID guiid = currentGUIID;
+            final Map<Key<?>, Object> currentUIScopedObjects = uiScopesForCurrentVaadinSession.computeIfAbsent(getCurrentGUIID(), guiid -> new HashMap<>());
 
-            if(guiid == null){
-                UI ui = checkNotNull(UI.getCurrent());
-
-                guiid = checkNotNull(uiToUIID.get(ui));
-            } else {
-                checkState(UI.getCurrent() == null);
-            }
-
-            final Map<Key<?>, Object> scopedObjects = map.computeIfAbsent(guiid, id -> new ConcurrentHashMap<>());
-
-            return (T)scopedObjects.computeIfAbsent(key, k -> provider.get());
+            return (T) currentUIScopedObjects.computeIfAbsent(key, k -> provider.get());
         };
+    }
+
+    private GUIID getCurrentGUIID() {
+        GUIID guiid = currentGUIID;
+
+        if(guiid == null){
+            UI ui = checkNotNull(UI.getCurrent());
+
+            guiid = checkNotNull(uiToUIID.get(ui));
+        } else {
+            checkState(UI.getCurrent() == null);
+        }
+        return guiid;
     }
 
     void startScopeInit(){
@@ -57,15 +60,11 @@ class UIScope implements Scope {
         currentGUIID = null;
     }
 
-    static class GUIID {
+    private static class GUIID {
 
-        private final UUID uiid;
+        private final UUID uiid = UUID.randomUUID();
 
-        GUIID() {
-            this.uiid = UUID.randomUUID();
-        }
-
-        public UUID getUiid() {
+        UUID getUiid() {
             return uiid;
         }
     }
