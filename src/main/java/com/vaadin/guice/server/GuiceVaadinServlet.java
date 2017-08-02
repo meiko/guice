@@ -214,9 +214,7 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         //set the GuiceUIProvider
         session.addUIProvider(guiceUIProvider);
 
-        for (Class<? extends BootstrapListener> bootStrapListenerClass : bootStrapListenerClasses) {
-            session.addBootstrapListener(getInjector().getInstance(bootStrapListenerClass));
-        }
+        bootStrapListenerClasses.stream().map(getInjector()::getInstance).forEach(session::addBootstrapListener);
     }
 
     GuiceViewProvider getViewProvider() {
