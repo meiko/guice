@@ -37,6 +37,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -47,7 +48,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.concat;
-import static com.google.common.collect.Sets.filter;
 import static com.google.inject.Guice.createInjector;
 import static com.google.inject.util.Modules.override;
 import static java.lang.reflect.Modifier.isAbstract;
@@ -187,12 +187,19 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
     }
 
     private <U> Set<Class<? extends U>> nonAbstractSubtypes(Reflections reflections, Class<U> type) {
-        return filter(reflections.getSubTypesOf(type), clazz -> clazz != null && !isAbstract(clazz.getModifiers()));
+        return reflections
+                    .getSubTypesOf(type)
+                    .stream()
+                    .filter(Objects::nonNull)
+                    .filter(subtype -> !isAbstract(subtype.getModifiers()))
+                    .collect(toSet());
     }
 
     @Override
     protected void servletInitialized() throws ServletException {
-        VaadinService.getCurrent().addSessionInitListener(this);
+        VaadinService
+                .getCurrent()
+                .addSessionInitListener(this);
     }
 
     @Override
