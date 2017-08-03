@@ -9,7 +9,6 @@ import com.vaadin.ui.UI;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.WeakHashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -17,55 +16,38 @@ import static com.google.common.base.Preconditions.checkState;
 
 class UIScope implements Scope {
 
-    private final Map<VaadinSession, Map<GUIID, Map<Key<?>, Object>>> scopesBySession = new WeakHashMap<>();
-    private final Map<UI, GUIID> uiToUIID = new WeakHashMap<>();
-    private GUIID currentGUIID;
+    private final Map<VaadinSession, Map<UI, Map<Key<?>, Object>>> scopesBySession = new WeakHashMap<>();
+    private Map<Key<?>, Object> initializationScopeSet;
 
     @Override
     @SuppressWarnings("unchecked")
     public <T> Provider<T> scope(Key<T> key, Provider<T> provider) {
         return () -> {
-            Map<GUIID, Map<Key<?>, Object>> uiScopesForCurrentVaadinSession = scopesBySession.computeIfAbsent(VaadinSession.getCurrent(), session -> new WeakHashMap<>());
+            Map<UI, Map<Key<?>, Object>> uisToScopedObjects = scopesBySession.computeIfAbsent(VaadinSession.getCurrent(), session -> new WeakHashMap<>());
 
-            final Map<Key<?>, Object> currentUIScopedObjects = uiScopesForCurrentVaadinSession.computeIfAbsent(getCurrentGUIID(), guiid -> new HashMap<>());
+            final Map<Key<?>, Object> scopedObjects = initializationScopeSet != null
+                    ? initializationScopeSet
+                    : checkNotNull(uisToScopedObjects.get(checkNotNull(UI.getCurrent())));
 
-            return (T) currentUIScopedObjects.computeIfAbsent(key, k -> provider.get());
+            return (T) scopedObjects.computeIfAbsent(key, k -> provider.get());
         };
     }
 
-    private GUIID getCurrentGUIID() {
-        GUIID guiid = currentGUIID;
-
-        if(guiid == null){
-            UI ui = checkNotNull(UI.getCurrent());
-
-            guiid = checkNotNull(uiToUIID.get(ui));
-        } else {
-            checkState(UI.getCurrent() == null);
-        }
-        return guiid;
-    }
-
     void startScopeInit(){
-        checkState(currentGUIID == null);
-        currentGUIID = new GUIID();
+        checkState(initializationScopeSet == null);
+        initializationScopeSet = new HashMap<>();
     }
 
     void flushInitialScopeSet(UI ui){
         checkNotNull(ui);
-        checkState(uiToUIID.put(ui, currentGUIID) == null);
+        checkState(initializationScopeSet != null);
+
+        final Map<UI, Map<Key<?>, Object>> uiToScopedObjects = scopesBySession.computeIfAbsent(VaadinSession.getCurrent(), session -> new WeakHashMap<>());
+
+        checkState(uiToScopedObjects.put(ui, initializationScopeSet) == null);
     }
 
     void endScopeInit(){
-        currentGUIID = null;
-    }
-
-    private static class GUIID {
-
-        private final UUID uiid = UUID.randomUUID();
-
-        UUID getUiid() {
-            return uiid;
-        }
+        initializationScopeSet = null;
     }
 }
