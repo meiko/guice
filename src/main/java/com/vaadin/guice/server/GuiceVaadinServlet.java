@@ -214,7 +214,10 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         //set the GuiceUIProvider
         session.addUIProvider(guiceUIProvider);
 
-        bootStrapListenerClasses.stream().map(getInjector()::getInstance).forEach(session::addBootstrapListener);
+        bootStrapListenerClasses
+            .stream()
+            .map(getInjector()::getInstance)
+            .forEach(session::addBootstrapListener);
     }
 
     GuiceViewProvider getViewProvider() {
@@ -248,8 +251,7 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
     Iterator<VaadinServiceInitListener> getServiceInitListeners() {
         return vaadinServiceInitListeners
                 .stream()
-                .map(injector::getInstance)
-                .map(listener -> (VaadinServiceInitListener) listener)
+                .map(key -> (VaadinServiceInitListener)getInjector().getInstance(key))
                 .iterator();
     }
 

@@ -29,15 +29,15 @@ class GuiceUIProvider extends UIProvider {
     private final Map<String, Class<? extends UI>> pathToUIMap;
     private final GuiceVaadinServlet guiceVaadinServlet;
 
-    GuiceUIProvider(GuiceVaadinServlet GuiceVaadinServlet) {
-        this.guiceVaadinServlet = GuiceVaadinServlet;
+    GuiceUIProvider(GuiceVaadinServlet guiceVaadinServlet) {
+        this.guiceVaadinServlet = guiceVaadinServlet;
         Logger logger = Logger.getLogger(getClass().getName());
 
         logger.info("Checking the application context for Vaadin UIs");
 
         pathToUIMap = new ConcurrentHashMap<>();
 
-        for (Class<? extends UI> uiClass : GuiceVaadinServlet.getUis()) {
+        for (Class<? extends UI> uiClass : guiceVaadinServlet.getUis()) {
 
             GuiceUI annotation = uiClass.getAnnotation(GuiceUI.class);
 
