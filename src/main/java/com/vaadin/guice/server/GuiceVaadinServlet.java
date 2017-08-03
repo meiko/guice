@@ -186,7 +186,7 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         super.init(servletConfig);
     }
 
-    private <U> Set<Class<? extends U>> nonAbstractSubtypes(Reflections reflections, Class<U> type){
+    private <U> Set<Class<? extends U>> nonAbstractSubtypes(Reflections reflections, Class<U> type) {
         return filter(reflections.getSubTypesOf(type), clazz -> clazz != null && !isAbstract(clazz.getModifiers()));
     }
 

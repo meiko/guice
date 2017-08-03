@@ -36,7 +36,7 @@ class UIProvider extends AbstractMatcher<Binding<?>> implements ProvisionListene
 
     @Override
     public <T> void onProvision(ProvisionInvocation<T> provisionInvocation) {
-        UI ui = (UI)provisionInvocation.provision();
+        UI ui = (UI) provisionInvocation.provision();
 
         final Class<? extends UI> uiClass = ui.getClass();
 
@@ -111,7 +111,7 @@ class UIProvider extends AbstractMatcher<Binding<?>> implements ProvisionListene
             ui.setContent(content);
         }
 
-        if(!ErrorHandler.class.equals(annotation.errorHandler())){
+        if (!ErrorHandler.class.equals(annotation.errorHandler())) {
             ErrorHandler errorHandler = guiceVaadinServlet.getInjector().getInstance(annotation.errorHandler());
 
             ui.setErrorHandler(errorHandler);

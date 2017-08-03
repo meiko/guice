@@ -12,11 +12,13 @@ import java.lang.annotation.Target;
 import java.util.Set;
 
 /**
- * this annotation is to be attached to a field or constructor-parameter that is being injected by guice
- * and is a {@link Set} of {@link Class}es that extend {@link View}. This set will then contain all
- * classes that implement the View-interface and are navigable from the current {@link UI}. A view-class is navigable
- * if it is contained in the scanned packages, and is not restricted to other UIs with {@link ForUI}.
+ * this annotation is to be attached to a field or constructor-parameter that is being injected by
+ * guice and is a {@link Set} of {@link Class}es that extend {@link View}. This set will then
+ * contain all classes that implement the View-interface and are navigable from the current {@link
+ * UI}. A view-class is navigable if it is contained in the scanned packages, and is not restricted
+ * to other UIs with {@link ForUI}.
  *
+ * @author Bernd Hopp (bernd@vaadin.com)
  * @see PackagesToScan
  * @see ForUI
  *
@@ -31,13 +33,12 @@ import java.util.Set;
  *        for(Class&lt;? extends View&gt; viewClass: navigableViewClasses) {
  *            GuiceView annotation = viewClass.getAnnotation(GuiceView.class);
  *
- *            Logger.getGlobal().info(viewClass + " is navigable from the current UI with path " + annotation.value());
+ *            Logger.getGlobal().info(viewClass + " is navigable from the current UI with path " +
+ * annotation.value());
  *        }
  *    }
  * }
  * </pre>
- *
- * @author Bernd Hopp (bernd@vaadin.com)
  */
 @Target({ElementType.FIELD, ElementType.PARAMETER})
 @Retention(java.lang.annotation.RetentionPolicy.RUNTIME)

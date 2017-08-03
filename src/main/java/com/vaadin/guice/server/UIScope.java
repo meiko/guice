@@ -33,12 +33,12 @@ class UIScope implements Scope {
         };
     }
 
-    void startScopeInit(){
+    void startScopeInit() {
         checkState(initializationScopeSet == null);
         initializationScopeSet = new HashMap<>();
     }
 
-    void flushInitialScopeSet(UI ui){
+    void flushInitialScopeSet(UI ui) {
         checkNotNull(ui);
         checkState(initializationScopeSet != null);
 
@@ -47,7 +47,7 @@ class UIScope implements Scope {
         checkState(uiToScopedObjects.put(ui, initializationScopeSet) == null);
     }
 
-    void endScopeInit(){
+    void endScopeInit() {
         initializationScopeSet = null;
     }
 }

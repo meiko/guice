@@ -20,7 +20,7 @@ class VaadinSessionScope implements Scope {
         return () -> {
             final Map<Key<?>, Object> scopeMap = scopeMapsBySession.computeIfAbsent(VaadinSession.getCurrent(), v -> new HashMap<>());
 
-            return (T)scopeMap.computeIfAbsent(key, k -> provider.get());
+            return (T) scopeMap.computeIfAbsent(key, k -> provider.get());
         };
     }
 }
