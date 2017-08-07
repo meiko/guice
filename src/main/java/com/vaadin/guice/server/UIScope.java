@@ -23,11 +23,19 @@ class UIScope implements Scope {
     @SuppressWarnings("unchecked")
     public <T> Provider<T> scope(Key<T> key, Provider<T> provider) {
         return () -> {
-            Map<UI, Map<Key<?>, Object>> uisToScopedObjects = scopesBySession.computeIfAbsent(VaadinSession.getCurrent(), session -> new WeakHashMap<>());
+            final VaadinSession vaadinSession = checkNotNull(VaadinSession.getCurrent());
 
-            final Map<Key<?>, Object> scopedObjects = initializationScopeSet != null
-                    ? initializationScopeSet
-                    : checkNotNull(uisToScopedObjects.get(checkNotNull(UI.getCurrent())));
+            Map<UI, Map<Key<?>, Object>> uisToScopedObjects = scopesBySession.computeIfAbsent(vaadinSession, session -> new WeakHashMap<>());
+
+            final Map<Key<?>, Object> scopedObjects;
+
+            if (initializationScopeSet != null) {
+                scopedObjects = initializationScopeSet;
+            } else {
+                final UI currentUI = checkNotNull(UI.getCurrent());
+
+                scopedObjects = checkNotNull(uisToScopedObjects.get(currentUI));
+            }
 
             return (T) scopedObjects.computeIfAbsent(key, k -> provider.get());
         };

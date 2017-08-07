@@ -10,6 +10,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 class VaadinSessionScope implements Scope {
 
     private final Map<VaadinSession, Map<Key<?>, Object>> scopeMapsBySession = new WeakHashMap<>();
@@ -18,7 +20,9 @@ class VaadinSessionScope implements Scope {
     @SuppressWarnings("unchecked")
     public <T> Provider<T> scope(Key<T> key, Provider<T> provider) {
         return () -> {
-            final Map<Key<?>, Object> scopeMap = scopeMapsBySession.computeIfAbsent(VaadinSession.getCurrent(), v -> new HashMap<>());
+            final VaadinSession vaadinSession = checkNotNull(VaadinSession.getCurrent());
+
+            final Map<Key<?>, Object> scopeMap = scopeMapsBySession.computeIfAbsent(vaadinSession, v -> new HashMap<>());
 
             return (T) scopeMap.computeIfAbsent(key, k -> provider.get());
         };
