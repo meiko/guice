@@ -37,7 +37,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 import javax.servlet.ServletConfig;
@@ -95,7 +94,6 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         final Set<Module> modulesFromAnnotations = stream(getClass().getAnnotations())
                 .filter(annotation -> annotation.getClass().isAnnotationPresent(Import.class))
                 .map(annotation -> createModule(annotation.getClass().getAnnotation(Import.class).value(), reflections, annotation))
-                .map(Optional::get)
                 .collect(toSet());
 
         Set<Class<? extends Module>> modulesFromAnnotationClasses = modulesFromAnnotations
@@ -103,13 +101,10 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
                 .map(Module::getClass)
                 .collect(toSet());
 
-        final Set<Module> modulesFromPath = reflections
-                .getSubTypesOf(Module.class)
+        final Set<Module> modulesFromPath = nonAbstractSubtypes(reflections, Module.class)
                 .stream()
                 .filter(moduleClass -> !modulesFromAnnotationClasses.contains(moduleClass))
                 .map(moduleClass -> createModule(moduleClass, reflections, null))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
                 .collect(toSet());
 
         Iterable<Module> allModules = concat(
@@ -260,11 +255,7 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
                 .iterator();
     }
 
-    private Optional<Module> createModule(Class<? extends Module> moduleClass, Reflections reflections, Annotation annotation) {
-
-        if (isAbstract(moduleClass.getModifiers())) {
-            return Optional.empty();
-        }
+    private Module createModule(Class<? extends Module> moduleClass, Reflections reflections, Annotation annotation) {
 
         for (Constructor<?> constructor : moduleClass.getDeclaredConstructors()) {
 
@@ -296,7 +287,7 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
             constructor.setAccessible(true);
 
             try {
-                return Optional.of((Module) constructor.newInstance(initArgs));
+                return (Module) constructor.newInstance(initArgs);
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                 throw new RuntimeException(e);
             }
