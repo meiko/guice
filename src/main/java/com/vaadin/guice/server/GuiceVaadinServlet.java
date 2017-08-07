@@ -37,7 +37,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -190,7 +189,6 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         return reflections
                     .getSubTypesOf(type)
                     .stream()
-                    .filter(Objects::nonNull)
                     .filter(subtype -> !isAbstract(subtype.getModifiers()))
                     .collect(toSet());
     }
@@ -317,12 +315,13 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         ForUI forUI = viewClass.getAnnotation(ForUI.class);
 
         if (forUI == null) {
+            //no @ForUI-annotation means that the view is not restricted to a particular set of UI's
             return true;
         }
 
         final List<Class<? extends UI>> applicableUIs = Arrays.asList(forUI.value());
 
-        checkArgument(!applicableUIs.isEmpty(), "@ForUI#value cannot be empty");
+        checkArgument(!applicableUIs.isEmpty(), "@ForUI#value() must not be empty at %s", viewClass);
 
         final UI currentUI = checkNotNull(UI.getCurrent());
 
