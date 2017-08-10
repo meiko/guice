@@ -20,10 +20,10 @@ import static com.google.common.base.Preconditions.checkState;
 import static java.lang.String.format;
 import static java.lang.reflect.Modifier.isAbstract;
 
-class UIProvider extends AbstractMatcher<Binding<?>> implements ProvisionListener {
+class UISetup extends AbstractMatcher<Binding<?>> implements ProvisionListener {
     private final GuiceVaadinServlet guiceVaadinServlet;
 
-    public UIProvider(GuiceVaadinServlet guiceVaadinServlet) {
+    UISetup(GuiceVaadinServlet guiceVaadinServlet) {
         this.guiceVaadinServlet = guiceVaadinServlet;
     }
 

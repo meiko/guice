@@ -27,9 +27,9 @@ class VaadinModule extends AbstractModule {
         bindScope(GuiceUI.class, guiceVaadinServlet.getVaadinSessionScoper());
         bindScope(VaadinSessionScope.class, guiceVaadinServlet.getVaadinSessionScoper());
 
-        UIProvider uiProvider = new UIProvider(guiceVaadinServlet);
+        UISetup uiSetup = new UISetup(guiceVaadinServlet);
 
-        bindListener(uiProvider, uiProvider);
+        bindListener(uiSetup, uiSetup);
 
         final TypeLiteral<Set<Class<? extends View>>> setOfViewClassesType = new TypeLiteral<Set<Class<? extends View>>>() {
         };

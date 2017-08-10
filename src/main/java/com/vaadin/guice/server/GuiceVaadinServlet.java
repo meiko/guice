@@ -145,7 +145,7 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
 
         uis.forEach(ui -> viewChangeListeners.put(ui, new HashSet<>()));
 
-        for (Class<? extends ViewChangeListener> viewChangeListenerClass : reflections.getSubTypesOf(ViewChangeListener.class)) {
+        for (Class<? extends ViewChangeListener> viewChangeListenerClass : nonAbstractSubtypes(reflections, ViewChangeListener.class)) {
 
             final ForUI annotation = viewChangeListenerClass.getAnnotation(ForUI.class);
 
@@ -172,7 +172,7 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         }
 
 
-        //sets up the basic vaadin stuff like UIProvider
+        //sets up the basic vaadin stuff like UISetup
         VaadinModule vaadinModule = new VaadinModule(this);
 
         this.injector = createInjector(vaadinModule, combinedModules);
