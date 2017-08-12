@@ -10,6 +10,7 @@ import com.vaadin.guice.annotation.UIScope;
 import com.vaadin.guice.annotation.VaadinSessionScope;
 import com.vaadin.navigator.View;
 
+import java.util.Map;
 import java.util.Set;
 
 class VaadinModule extends AbstractModule {
@@ -34,6 +35,11 @@ class VaadinModule extends AbstractModule {
         final TypeLiteral<Set<Class<? extends View>>> setOfViewClassesType = new TypeLiteral<Set<Class<? extends View>>>() {
         };
 
+        final TypeLiteral<Map<Class<? extends View>, String>> mapOfViewClassesToStringsType = new TypeLiteral<Map<Class<? extends View>, String>>() {
+        };
+
         bind(setOfViewClassesType).annotatedWith(NavigableViewClasses.class).toProvider(new NavigableViewsProvider(guiceVaadinServlet));
+
+        bind(mapOfViewClassesToStringsType).annotatedWith(NavigableViewClasses.class).toProvider(new NavigableViewsWithMappingProvider(guiceVaadinServlet));
     }
 }
