@@ -182,10 +182,10 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
 
     private <U> Set<Class<? extends U>> nonAbstractSubtypes(Reflections reflections, Class<U> type) {
         return reflections
-                    .getSubTypesOf(type)
-                    .stream()
-                    .filter(subtype -> !isAbstract(subtype.getModifiers()))
-                    .collect(toSet());
+                .getSubTypesOf(type)
+                .stream()
+                .filter(subtype -> !isAbstract(subtype.getModifiers()))
+                .collect(toSet());
     }
 
     @Override
@@ -215,9 +215,9 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         session.addUIProvider(guiceUIProvider);
 
         bootStrapListenerClasses
-            .stream()
-            .map(getInjector()::getInstance)
-            .forEach(session::addBootstrapListener);
+                .stream()
+                .map(getInjector()::getInstance)
+                .forEach(session::addBootstrapListener);
     }
 
     GuiceViewProvider getViewProvider() {
@@ -251,7 +251,7 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
     Iterator<VaadinServiceInitListener> getServiceInitListeners() {
         return vaadinServiceInitListeners
                 .stream()
-                .map(key -> (VaadinServiceInitListener)getInjector().getInstance(key))
+                .map(key -> (VaadinServiceInitListener) getInjector().getInstance(key))
                 .iterator();
     }
 
@@ -303,7 +303,7 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
     boolean isNavigable(Class<? extends UI> uiClass, Class<? extends View> viewClass) {
         checkNotNull(viewClass);
 
-        if(!uis.contains(uiClass)){
+        if (!uis.contains(uiClass)) {
             //unknown ui, not navigable
             return false;
         }

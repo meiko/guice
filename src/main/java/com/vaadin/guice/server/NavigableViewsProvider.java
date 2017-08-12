@@ -31,7 +31,7 @@ class NavigableViewsProvider implements Provider<Set<Class<? extends View>>> {
 
         Set<Class<? extends View>> value = cache.get(currentUIClass);
 
-        if(value == null){
+        if (value == null) {
             final Iterator<Class<? extends View>> iterator = guiceVaadinServlet
                     .getViews()
                     .stream()

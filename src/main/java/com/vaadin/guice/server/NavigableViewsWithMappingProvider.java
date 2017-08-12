@@ -30,7 +30,7 @@ class NavigableViewsWithMappingProvider implements Provider<Map<Class<? extends 
 
         Map<Class<? extends View>, String> value = cache.get(currentUIClass);
 
-        if(value == null){
+        if (value == null) {
             ImmutableMap.Builder<Class<? extends View>, String> builder = ImmutableMap.builder();
 
             guiceVaadinServlet
