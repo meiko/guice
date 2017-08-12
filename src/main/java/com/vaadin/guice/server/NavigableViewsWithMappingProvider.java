@@ -21,13 +21,11 @@ class NavigableViewsWithMappingProvider implements Provider<Map<Class<? extends 
 
         ImmutableMap.Builder<Class<? extends View>, String> builder = ImmutableMap.builder();
 
-        for (Class<? extends View> viewClass : guiceVaadinServlet.getViews()) {
-            if(!guiceVaadinServlet.isNavigableForCurrentUI(viewClass)){
-                continue;
-            }
-
-            builder.put(viewClass, viewClass.getAnnotation(GuiceView.class).value());
-        }
+        guiceVaadinServlet
+                .getViews()
+                .stream()
+                .filter(guiceVaadinServlet::isNavigableForCurrentUI)
+                .forEach(c -> builder.put(c, c.getAnnotation(GuiceView.class).value()));
 
         return builder.build();
     }
