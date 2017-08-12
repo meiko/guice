@@ -300,8 +300,13 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         return checkNotNull(injector, "injector is not set up yet");
     }
 
-    boolean isNavigableForCurrentUI(Class<? extends View> viewClass) {
+    boolean isNavigable(Class<? extends UI> uiClass, Class<? extends View> viewClass) {
         checkNotNull(viewClass);
+
+        if(!uis.contains(uiClass)){
+            //unknown ui, not navigable
+            return false;
+        }
 
         ForUI forUI = viewClass.getAnnotation(ForUI.class);
 
@@ -314,8 +319,6 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
 
         checkArgument(!applicableUIs.isEmpty(), "@ForUI#value() must not be empty at %s", viewClass);
 
-        final UI currentUI = checkNotNull(UI.getCurrent());
-
-        return applicableUIs.contains(currentUI.getClass());
+        return applicableUIs.contains(uiClass);
     }
 }

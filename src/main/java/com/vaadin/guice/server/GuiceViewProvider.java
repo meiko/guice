@@ -3,6 +3,7 @@ package com.vaadin.guice.server;
 import com.vaadin.guice.annotation.GuiceView;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewProvider;
+import com.vaadin.ui.UI;
 
 import java.util.Map;
 import java.util.Set;
@@ -62,7 +63,9 @@ class GuiceViewProvider implements ViewProvider {
             return null;
         }
 
-        return guiceVaadinServlet.isNavigableForCurrentUI(viewClass) ? viewName : null;
+        final UI currentUI = UI.getCurrent();
+
+        return guiceVaadinServlet.isNavigable(currentUI.getClass(), viewClass) ? viewName : null;
     }
 
     @Override
