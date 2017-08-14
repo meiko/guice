@@ -6,10 +6,9 @@ import com.google.inject.Provider;
 import com.vaadin.navigator.View;
 import com.vaadin.ui.UI;
 
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -17,7 +16,7 @@ class NavigableViewsProvider implements Provider<Set<Class<? extends View>>> {
 
     private final GuiceVaadinServlet guiceVaadinServlet;
 
-    private final Map<Class<? extends UI>, Set<Class<? extends View>>> cache = new HashMap<>();
+    private final Map<Class<? extends UI>, Set<Class<? extends View>>> cache = new ConcurrentHashMap<>();
 
     NavigableViewsProvider(GuiceVaadinServlet guiceVaadinServlet) {
         this.guiceVaadinServlet = guiceVaadinServlet;
@@ -29,20 +28,16 @@ class NavigableViewsProvider implements Provider<Set<Class<? extends View>>> {
 
         final Class<? extends UI> currentUIClass = currentUI.getClass();
 
-        Set<Class<? extends View>> value = cache.get(currentUIClass);
+        return cache.computeIfAbsent(currentUIClass, this::compute);
+    }
 
-        if (value == null) {
-            final Iterator<Class<? extends View>> iterator = guiceVaadinServlet
-                    .getViews()
-                    .stream()
-                    .filter(viewClass -> guiceVaadinServlet.isNavigable(currentUIClass, viewClass))
-                    .iterator();
-
-            value = ImmutableSet.copyOf(iterator);
-
-            cache.put(currentUIClass, value);
-        }
-
-        return value;
+    private Set<Class<? extends View>> compute(Class<? extends UI> currentUIClass) {
+        return ImmutableSet.copyOf(
+            guiceVaadinServlet
+                .getViews()
+                .stream()
+                .filter(viewClass -> guiceVaadinServlet.isNavigable(currentUIClass, viewClass))
+                .iterator()
+        );
     }
 }
