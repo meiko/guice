@@ -22,7 +22,7 @@ class NavigableViewsWithMappingProvider implements Provider<Map<Class<? extends 
     }
 
     @Override
-    public synchronized Map<Class<? extends View>, String> get() {
+    public Map<Class<? extends View>, String> get() {
 
         final UI currentUI = checkNotNull(UI.getCurrent());
 
