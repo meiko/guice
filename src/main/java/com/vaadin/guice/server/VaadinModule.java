@@ -16,6 +16,10 @@ import java.util.Set;
 class VaadinModule extends AbstractModule {
 
     private final GuiceVaadinServlet guiceVaadinServlet;
+    private final TypeLiteral<Set<Class<? extends View>>> setOfViewClassesType = new TypeLiteral<Set<Class<? extends View>>>() {
+    };
+    private final TypeLiteral<Map<Class<? extends View>, String>> mapOfViewClassesToStringsType = new TypeLiteral<Map<Class<? extends View>, String>>() {
+    };
 
     VaadinModule(GuiceVaadinServlet GuiceVaadinServlet) {
         this.guiceVaadinServlet = GuiceVaadinServlet;
@@ -32,14 +36,12 @@ class VaadinModule extends AbstractModule {
 
         bindListener(uiSetup, uiSetup);
 
-        final TypeLiteral<Set<Class<? extends View>>> setOfViewClassesType = new TypeLiteral<Set<Class<? extends View>>>() {
-        };
+        bind(setOfViewClassesType)
+                .annotatedWith(NavigableViewClasses.class)
+                .toProvider(new NavigableViewsProvider(guiceVaadinServlet));
 
-        final TypeLiteral<Map<Class<? extends View>, String>> mapOfViewClassesToStringsType = new TypeLiteral<Map<Class<? extends View>, String>>() {
-        };
-
-        bind(setOfViewClassesType).annotatedWith(NavigableViewClasses.class).toProvider(new NavigableViewsProvider(guiceVaadinServlet));
-
-        bind(mapOfViewClassesToStringsType).annotatedWith(NavigableViewClasses.class).toProvider(new NavigableViewsWithMappingProvider(guiceVaadinServlet));
+        bind(mapOfViewClassesToStringsType)
+                .annotatedWith(NavigableViewClasses.class)
+                .toProvider(new NavigableViewsWithMappingProvider(guiceVaadinServlet));
     }
 }

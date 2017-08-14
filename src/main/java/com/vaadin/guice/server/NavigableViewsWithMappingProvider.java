@@ -26,9 +26,7 @@ class NavigableViewsWithMappingProvider implements Provider<Map<Class<? extends 
 
         final UI currentUI = checkNotNull(UI.getCurrent());
 
-        final Class<? extends UI> currentUIClass = currentUI.getClass();
-
-        return cache.computeIfAbsent(currentUIClass, this::compute);
+        return cache.computeIfAbsent(currentUI.getClass(), this::compute);
     }
 
     private Map<Class<? extends View>, String> compute(Class<? extends UI> uiClass){

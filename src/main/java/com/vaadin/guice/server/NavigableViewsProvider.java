@@ -26,9 +26,7 @@ class NavigableViewsProvider implements Provider<Set<Class<? extends View>>> {
     public Set<Class<? extends View>> get() {
         final UI currentUI = checkNotNull(UI.getCurrent());
 
-        final Class<? extends UI> currentUIClass = currentUI.getClass();
-
-        return cache.computeIfAbsent(currentUIClass, this::compute);
+        return cache.computeIfAbsent(currentUI.getClass(), this::compute);
     }
 
     private Set<Class<? extends View>> compute(Class<? extends UI> currentUIClass) {
