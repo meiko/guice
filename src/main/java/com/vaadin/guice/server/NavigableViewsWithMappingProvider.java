@@ -3,6 +3,7 @@ package com.vaadin.guice.server;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Provider;
 
+import com.vaadin.guice.annotation.GuiceUI;
 import com.vaadin.guice.annotation.GuiceView;
 import com.vaadin.navigator.View;
 import com.vaadin.ui.UI;
@@ -11,6 +12,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 class NavigableViewsWithMappingProvider implements Provider<Map<Class<? extends View>, String>> {
 
@@ -23,19 +25,32 @@ class NavigableViewsWithMappingProvider implements Provider<Map<Class<? extends 
 
     @Override
     public Map<Class<? extends View>, String> get() {
+        final UI currentUI = UI.getCurrent();
 
-        final UI currentUI = checkNotNull(UI.getCurrent());
+        Class<? extends UI> uiClass;
 
-        return cache.computeIfAbsent(currentUI.getClass(), this::compute);
+        if(currentUI != null) {
+            uiClass = currentUI.getClass();
+        } else {
+            uiClass = checkNotNull(guiceVaadinServlet.getUiScoper().currentlyCreatedUIClass());
+        }
+
+        return cache.computeIfAbsent(uiClass, this::compute);
     }
 
     private Map<Class<? extends View>, String> compute(Class<? extends UI> uiClass){
+
+        final GuiceUI annotation = uiClass.getAnnotation(GuiceUI.class);
+
+        checkState(annotation != null);
+
         ImmutableMap.Builder<Class<? extends View>, String> builder = ImmutableMap.builder();
 
         guiceVaadinServlet
                 .getViews()
                 .stream()
                 .filter(viewClass -> guiceVaadinServlet.isNavigable(uiClass, viewClass))
+                .filter(viewClass -> !viewClass.equals(annotation.errorView()))
                 .forEach(c -> builder.put(c, c.getAnnotation(GuiceView.class).value()));
 
         return builder.build();

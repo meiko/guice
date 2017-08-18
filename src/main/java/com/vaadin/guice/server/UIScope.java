@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
@@ -18,6 +19,7 @@ class UIScope implements Scope {
 
     private final Map<VaadinSession, Map<UI, Map<Key<?>, Object>>> scopesBySession = new WeakHashMap<>();
     private Map<Key<?>, Object> initializationScopeSet;
+    private Class<? extends UI> currentlyCreatedUIClass;
 
     @Override
     @SuppressWarnings("unchecked")
@@ -41,14 +43,20 @@ class UIScope implements Scope {
         };
     }
 
-    void startScopeInit() {
+    Class<? extends UI> currentlyCreatedUIClass(){
+        return currentlyCreatedUIClass;
+    }
+
+    void startScopeInit(Class<? extends UI> currentlyCreatedUIClass) {
         checkState(initializationScopeSet == null);
         initializationScopeSet = new HashMap<>();
+        this.currentlyCreatedUIClass = currentlyCreatedUIClass;
     }
 
     void flushInitialScopeSet(UI ui) {
         checkNotNull(ui);
         checkState(initializationScopeSet != null);
+        checkArgument(ui.getClass().equals(currentlyCreatedUIClass));
 
         final Map<UI, Map<Key<?>, Object>> uiToScopedObjects = scopesBySession.computeIfAbsent(VaadinSession.getCurrent(), session -> new WeakHashMap<>());
 
@@ -57,5 +65,6 @@ class UIScope implements Scope {
 
     void endScopeInit() {
         initializationScopeSet = null;
+        currentlyCreatedUIClass = null;
     }
 }

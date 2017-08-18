@@ -15,7 +15,8 @@ import java.util.Set;
  * guice and is a {@link Set} of {@link Class}es that extend {@link View} or a {@link java.util.Map}
  * of Classes that extend View and {@link String}s.
  *
- * Set's will contain all classes that extend View and are navigable from the current UI.
+ * Set's will contain all classes that extend View and are navigable from the current UI but are not
+ * the error-view registered under {@link GuiceUI#errorView()}
  *
  * Map's will map these classes to the URI-fragment they are registered under.
  *

@@ -1,7 +1,5 @@
 package com.vaadin.guice.annotation;
 
-import com.google.inject.ScopeAnnotation;
-
 import com.vaadin.guice.server.GuiceNavigator;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
@@ -31,8 +29,6 @@ import java.lang.annotation.Target;
  *     // ...
  * }
  * </pre>
- * <p> The annotated UI will automatically be placed in the {@link UIScope}, so there is no need to
- * add that annotation explicitly.
  *
  * @author Petter Holmström (petter@vaadin.com)
  * @author Bernd Hopp (bernd@vaadin.com)
@@ -40,7 +36,6 @@ import java.lang.annotation.Target;
 @Target({java.lang.annotation.ElementType.TYPE})
 @Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
 @Documented
-@ScopeAnnotation
 public @interface GuiceUI {
 
     /**

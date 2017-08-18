@@ -17,7 +17,6 @@ import com.vaadin.server.DeploymentConfiguration;
 import com.vaadin.server.ServiceException;
 import com.vaadin.server.SessionInitEvent;
 import com.vaadin.server.SessionInitListener;
-import com.vaadin.server.UIProvider;
 import com.vaadin.server.VaadinService;
 import com.vaadin.server.VaadinServiceInitListener;
 import com.vaadin.server.VaadinServlet;
@@ -202,14 +201,12 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
 
     @Override
     public void sessionInit(SessionInitEvent event) throws ServiceException {
-        // remove DefaultUIProvider instances to avoid mapping
-        // extraneous UIs if e.g. a servlet is declared as a nested
-        // class in a UI class
         VaadinSession session = event.getSession();
 
-        for (UIProvider uiProvider : session.getUIProviders()) {
-            session.removeUIProvider(uiProvider);
-        }
+        // remove UIProvider instances to avoid mapping
+        // extraneous UIs if e.g. a servlet is declared as a nested
+        // class in a UI class
+        session.getUIProviders().forEach(session::removeUIProvider);
 
         //set the GuiceUIProvider
         session.addUIProvider(guiceUIProvider);

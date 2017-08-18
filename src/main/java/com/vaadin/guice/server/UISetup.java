@@ -116,7 +116,5 @@ class UISetup extends AbstractMatcher<Binding<?>> implements ProvisionListener {
 
             ui.setErrorHandler(errorHandler);
         }
-
-        guiceVaadinServlet.getInjector().injectMembers(ui);
     }
 }

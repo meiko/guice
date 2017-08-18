@@ -24,9 +24,17 @@ class NavigableViewsProvider implements Provider<Set<Class<? extends View>>> {
 
     @Override
     public Set<Class<? extends View>> get() {
-        final UI currentUI = checkNotNull(UI.getCurrent());
+        final UI currentUI = UI.getCurrent();
 
-        return cache.computeIfAbsent(currentUI.getClass(), this::compute);
+        Class<? extends UI> uiClass;
+
+        if(currentUI != null) {
+            uiClass = currentUI.getClass();
+        } else {
+            uiClass = checkNotNull(guiceVaadinServlet.getUiScoper().currentlyCreatedUIClass());
+        }
+
+        return cache.computeIfAbsent(uiClass, this::compute);
     }
 
     private Set<Class<? extends View>> compute(Class<? extends UI> currentUIClass) {
