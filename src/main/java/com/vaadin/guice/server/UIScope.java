@@ -43,7 +43,7 @@ class UIScope implements Scope {
         };
     }
 
-    Class<? extends UI> currentlyCreatedUIClass(){
+    Class<? extends UI> currentlyCreatedUIClass() {
         return currentlyCreatedUIClass;
     }
 

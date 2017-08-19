@@ -26,52 +26,6 @@ import static org.mockito.Mockito.when;
 
 public class OverrideBindingsTest {
 
-    static class TestServlet extends GuiceVaadinServlet{
-        TestServlet() {
-            try {
-                final ServletConfig servletConfig = Mockito.mock(ServletConfig.class);
-
-                final ServletContext servletContext = Mockito.mock(ServletContext.class);
-
-                when(servletConfig.getServletContext()).thenReturn(servletContext);
-
-                final Enumeration<String> initParameters = new Enumeration<String>() {
-                    @Override
-                    public boolean hasMoreElements() {
-                        return false;
-                    }
-
-                    @Override
-                    public String nextElement() {
-                        return null;
-                    }
-                };
-
-                when(servletConfig.getInitParameterNames()).thenReturn(initParameters);
-                when(servletContext.getInitParameterNames()).thenReturn(initParameters);
-
-                init(servletConfig);
-            } catch (ServletException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-    }
-
-    @PackagesToScan({"com.vaadin.guice.testClasses", "com.vaadin.guice.override", "com.vaadin.guice.nonoverride"})
-    static class Servlet1 extends TestServlet{
-    }
-
-
-    @PackagesToScan({"com.vaadin.guice.testClasses", "com.vaadin.guice.nonoverride"})
-    static class Servlet2 extends TestServlet{
-    }
-
-
-    @PackagesToScan({"com.vaadin.guice.testClasses", "com.vaadin.guice.override"})
-    static class Servlet3 extends TestServlet{
-    }
-
     @Test
     public void dynamically_loaded_modules_should_override() throws ReflectiveOperationException, ServletException {
         GuiceVaadinServlet GuiceVaadinServlet = new Servlet1();
@@ -117,5 +71,49 @@ public class OverrideBindingsTest {
         GuiceVaadinServlet GuiceVaadinServlet = new Servlet3();
 
         GuiceVaadinServlet.getInjector().getInstance(AnotherInterface.class);
+    }
+
+    static class TestServlet extends GuiceVaadinServlet {
+        TestServlet() {
+            try {
+                final ServletConfig servletConfig = Mockito.mock(ServletConfig.class);
+
+                final ServletContext servletContext = Mockito.mock(ServletContext.class);
+
+                when(servletConfig.getServletContext()).thenReturn(servletContext);
+
+                final Enumeration<String> initParameters = new Enumeration<String>() {
+                    @Override
+                    public boolean hasMoreElements() {
+                        return false;
+                    }
+
+                    @Override
+                    public String nextElement() {
+                        return null;
+                    }
+                };
+
+                when(servletConfig.getInitParameterNames()).thenReturn(initParameters);
+                when(servletContext.getInitParameterNames()).thenReturn(initParameters);
+
+                init(servletConfig);
+            } catch (ServletException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+    }
+
+    @PackagesToScan({"com.vaadin.guice.testClasses", "com.vaadin.guice.override", "com.vaadin.guice.nonoverride"})
+    static class Servlet1 extends TestServlet {
+    }
+
+    @PackagesToScan({"com.vaadin.guice.testClasses", "com.vaadin.guice.nonoverride"})
+    static class Servlet2 extends TestServlet {
+    }
+
+    @PackagesToScan({"com.vaadin.guice.testClasses", "com.vaadin.guice.override"})
+    static class Servlet3 extends TestServlet {
     }
 }

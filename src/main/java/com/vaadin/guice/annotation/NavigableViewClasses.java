@@ -19,8 +19,8 @@ import java.util.Set;
  * Set's will contain all classes that extend View and are navigable from the current UI but are not
  * the error-view registered under {@link GuiceUI#errorView()}
  *
- * Map's will have these classes as the map's {@link Map#values()} and
- * the URI-fragment they are registered under as the map's {@link Map#keySet()}
+ * Map's will have these classes as the map's {@link Map#values()} and the URI-fragment they are
+ * registered under as the map's {@link Map#keySet()}
  *
  * A view-class is navigable if it is contained in the scanned packages, and is not restricted to
  * other UIs with {@link ForUI}.

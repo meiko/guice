@@ -2,6 +2,7 @@ package com.vaadin.guice.testClasses;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+
 import com.vaadin.guice.annotation.GuiceUI;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.ui.UI;

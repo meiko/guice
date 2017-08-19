@@ -1,6 +1,7 @@
 package com.vaadin.guice.nonoverride;
 
 import com.google.inject.AbstractModule;
+
 import com.vaadin.guice.testClasses.AnImplementation;
 import com.vaadin.guice.testClasses.AnInterface;
 import com.vaadin.guice.testClasses.AnotherInterface;

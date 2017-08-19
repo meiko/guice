@@ -28,7 +28,7 @@ class NavigableViewsProvider implements Provider<Set<Class<? extends View>>> {
 
         Class<? extends UI> uiClass;
 
-        if(currentUI != null) {
+        if (currentUI != null) {
             uiClass = currentUI.getClass();
         } else {
             uiClass = checkNotNull(guiceVaadinServlet.getUiScoper().currentlyCreatedUIClass());
@@ -39,11 +39,11 @@ class NavigableViewsProvider implements Provider<Set<Class<? extends View>>> {
 
     private Set<Class<? extends View>> compute(Class<? extends UI> currentUIClass) {
         return ImmutableSet.copyOf(
-            guiceVaadinServlet
-                .getViews()
-                .stream()
-                .filter(viewClass -> guiceVaadinServlet.isNavigable(currentUIClass, viewClass))
-                .iterator()
+                guiceVaadinServlet
+                        .getViews()
+                        .stream()
+                        .filter(viewClass -> guiceVaadinServlet.isNavigable(currentUIClass, viewClass))
+                        .iterator()
         );
     }
 }

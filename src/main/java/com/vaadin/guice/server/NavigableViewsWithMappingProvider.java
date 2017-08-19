@@ -29,7 +29,7 @@ class NavigableViewsWithMappingProvider implements Provider<Map<String, Class<? 
 
         Class<? extends UI> uiClass;
 
-        if(currentUI != null) {
+        if (currentUI != null) {
             uiClass = currentUI.getClass();
         } else {
             uiClass = checkNotNull(guiceVaadinServlet.getUiScoper().currentlyCreatedUIClass());
@@ -38,7 +38,7 @@ class NavigableViewsWithMappingProvider implements Provider<Map<String, Class<? 
         return cache.computeIfAbsent(uiClass, this::compute);
     }
 
-    private Map<String, Class<? extends View>> compute(Class<? extends UI> uiClass){
+    private Map<String, Class<? extends View>> compute(Class<? extends UI> uiClass) {
 
         final GuiceUI annotation = uiClass.getAnnotation(GuiceUI.class);
 
