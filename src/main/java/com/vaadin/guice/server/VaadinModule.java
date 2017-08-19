@@ -17,7 +17,7 @@ class VaadinModule extends AbstractModule {
     private final GuiceVaadinServlet guiceVaadinServlet;
     private final TypeLiteral<Set<Class<? extends View>>> setOfViewClassesType = new TypeLiteral<Set<Class<? extends View>>>() {
     };
-    private final TypeLiteral<Map<Class<? extends View>, String>> mapOfViewClassesToStringsType = new TypeLiteral<Map<Class<? extends View>, String>>() {
+    private final TypeLiteral<Map<String, Class<? extends View>>> mapOfViewClassesToStringsType = new TypeLiteral<Map<String, Class<? extends View>>>() {
     };
 
     VaadinModule(GuiceVaadinServlet GuiceVaadinServlet) {

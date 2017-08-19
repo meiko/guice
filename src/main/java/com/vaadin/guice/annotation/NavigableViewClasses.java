@@ -8,6 +8,7 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -18,7 +19,8 @@ import java.util.Set;
  * Set's will contain all classes that extend View and are navigable from the current UI but are not
  * the error-view registered under {@link GuiceUI#errorView()}
  *
- * Map's will map these classes to the URI-fragment they are registered under.
+ * Map's will have these classes as the map's {@link Map#values()} and
+ * the URI-fragment they are registered under as the map's {@link Map#keySet()}
  *
  * A view-class is navigable if it is contained in the scanned packages, and is not restricted to
  * other UIs with {@link ForUI}.
@@ -37,13 +39,13 @@ import java.util.Set;
  *
  *    //classes and URI-fragments
  *    &#064;NavigableViewClasses
- *    private Map&lt;Class&lt;? extends View&gt;, String&gt; map;
+ *    private Map&lt;String, Class&lt;? extends View&gt;&gt; map;
  *
  *    public void init(VaadinRequest vaadinRequest) {
- *        for(Entry&lt;Class&lt;? extends View&gt,String&gt; entry: ) {
+ *        for(Entry&lt;String,Class&lt;? extends View&gt&gt; entry: ) {
  *
- *              Class&lt;? extends View&gt viewClass = entry.getKey();
- *              String uriFragment = entry.getValue();
+ *              Class&lt;? extends View&gt viewClass = entry.Value();
+ *              String uriFragment = entry.getKey();
  *
  *            Logger.getGlobal().info(viewClass + " is navigable from the current UI with
  * URI-fragment " +

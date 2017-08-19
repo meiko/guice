@@ -14,17 +14,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
-class NavigableViewsWithMappingProvider implements Provider<Map<Class<? extends View>, String>> {
+class NavigableViewsWithMappingProvider implements Provider<Map<String, Class<? extends View>>> {
 
     private final GuiceVaadinServlet guiceVaadinServlet;
-    private final Map<Class<? extends UI>, Map<Class<? extends View>, String>> cache = new ConcurrentHashMap<>();
+    private final Map<Class<? extends UI>, Map<String, Class<? extends View>>> cache = new ConcurrentHashMap<>();
 
     NavigableViewsWithMappingProvider(GuiceVaadinServlet guiceVaadinServlet) {
         this.guiceVaadinServlet = guiceVaadinServlet;
     }
 
     @Override
-    public Map<Class<? extends View>, String> get() {
+    public Map<String, Class<? extends View>> get() {
         final UI currentUI = UI.getCurrent();
 
         Class<? extends UI> uiClass;
@@ -38,20 +38,20 @@ class NavigableViewsWithMappingProvider implements Provider<Map<Class<? extends 
         return cache.computeIfAbsent(uiClass, this::compute);
     }
 
-    private Map<Class<? extends View>, String> compute(Class<? extends UI> uiClass){
+    private Map<String, Class<? extends View>> compute(Class<? extends UI> uiClass){
 
         final GuiceUI annotation = uiClass.getAnnotation(GuiceUI.class);
 
         checkState(annotation != null);
 
-        ImmutableMap.Builder<Class<? extends View>, String> builder = ImmutableMap.builder();
+        ImmutableMap.Builder<String, Class<? extends View>> builder = ImmutableMap.builder();
 
         guiceVaadinServlet
                 .getViews()
                 .stream()
                 .filter(viewClass -> guiceVaadinServlet.isNavigable(uiClass, viewClass))
                 .filter(viewClass -> !viewClass.equals(annotation.errorView()))
-                .forEach(c -> builder.put(c, c.getAnnotation(GuiceView.class).value()));
+                .forEach(c -> builder.put(c.getAnnotation(GuiceView.class).value(), c));
 
         return builder.build();
     }
