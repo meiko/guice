@@ -91,8 +91,8 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         Reflections reflections = new Reflections((Object[]) packagesToScan);
 
         final Set<Module> modulesFromAnnotations = stream(getClass().getAnnotations())
-                .filter(annotation -> annotation.getClass().isAnnotationPresent(Import.class))
-                .map(annotation -> createModule(annotation.getClass().getAnnotation(Import.class).value(), reflections, annotation))
+                .filter(annotation -> annotation.annotationType().isAnnotationPresent(Import.class))
+                .map(annotation -> createModule(annotation.annotationType().getAnnotation(Import.class).value(), reflections, annotation))
                 .collect(toSet());
 
         Set<Class<? extends Module>> modulesFromAnnotationClasses = modulesFromAnnotations
