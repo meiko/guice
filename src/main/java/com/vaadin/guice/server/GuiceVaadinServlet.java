@@ -61,7 +61,7 @@ import static java.util.stream.Collectors.toSet;
 @SuppressWarnings("unused")
 public class GuiceVaadinServlet extends VaadinServlet implements SessionInitListener {
 
-    private final Class<? super Provider<Injector>> injectorProviderType = new TypeLiteral<Provider<Injector>>() {
+    private static final Class<? super Provider<Injector>> injectorProviderType = new TypeLiteral<Provider<Injector>>() {
     }.getRawType();
     private GuiceViewProvider viewProvider;
     private GuiceUIProvider guiceUIProvider;
