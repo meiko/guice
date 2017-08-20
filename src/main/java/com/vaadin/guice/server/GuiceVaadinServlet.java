@@ -269,7 +269,7 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
                     initArgs[i] = reflections;
                 } else if (injectorProviderType.equals(parameterType)) {
                     initArgs[i] = (Provider<Injector>) this::getInjector;
-                } else if (annotation != null && annotation.getClass().equals(parameterType)) {
+                } else if (annotation != null && annotation.annotationType().equals(parameterType)) {
                     initArgs[i] = annotation;
                 } else {
                     allParameterTypesResolved = false;
