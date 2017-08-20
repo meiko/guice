@@ -86,7 +86,7 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         if (!isNullOrEmpty(initParameter)) {
             checkState(
                 !annotationPresent,
-                "%s has both @PackagesToScan-annotation and an 'packagetToScan'-initParam",
+                "%s has both @PackagesToScan-annotation and an 'packagesToScan'-initParam",
                 getClass()
             );
             packagesToScan = initParameter.split(",");
