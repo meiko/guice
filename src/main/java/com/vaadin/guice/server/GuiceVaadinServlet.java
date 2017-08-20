@@ -43,6 +43,7 @@ import javax.servlet.ServletException;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.concat;
 import static com.google.inject.Guice.createInjector;
@@ -80,9 +81,16 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
 
         final String[] packagesToScan;
 
+        final boolean annotationPresent = getClass().isAnnotationPresent(PackagesToScan.class);
+
         if (!isNullOrEmpty(initParameter)) {
+            checkState(
+                !annotationPresent,
+                "%s has both @PackagesToScan-annotation and an 'packagetToScan'-initParam",
+                getClass()
+            );
             packagesToScan = initParameter.split(",");
-        } else if (getClass().isAnnotationPresent(PackagesToScan.class)) {
+        } else if (annotationPresent) {
             packagesToScan = getClass().getAnnotation(PackagesToScan.class).value();
         } else {
             throw new IllegalStateException("no packagesToScan-initParameter found and no @PackagesToScan-annotation present, please configure the packages to be scanned");
