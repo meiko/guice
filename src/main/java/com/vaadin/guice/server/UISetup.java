@@ -123,6 +123,12 @@ class UISetup extends AbstractMatcher<Binding<?>> implements ProvisionListener {
         }
 
         if (!ErrorHandler.class.equals(annotation.errorHandler())) {
+            checkState(
+                    !uiClass.equals(contentClass),
+                    "%s cannot be used as it's own error-handler",
+                    uiClass
+            );
+
             ErrorHandler errorHandler = guiceVaadinServlet.getInjector().getInstance(annotation.errorHandler());
 
             ui.setErrorHandler(errorHandler);
