@@ -29,18 +29,20 @@ class UIScope implements Scope {
 
             Map<UI, Map<Key<?>, Object>> uisToScopedObjects = scopesBySession.computeIfAbsent(vaadinSession, session -> new WeakHashMap<>());
 
-            final Map<Key<?>, Object> scopedObjects;
-
-            if (initializationScopeSet != null) {
-                scopedObjects = initializationScopeSet;
-            } else {
-                final UI currentUI = checkNotNull(UI.getCurrent());
-
-                scopedObjects = checkNotNull(uisToScopedObjects.get(currentUI));
-            }
+            final Map<Key<?>, Object> scopedObjects = getScopedObjects(uisToScopedObjects);
 
             return (T) scopedObjects.computeIfAbsent(key, k -> provider.get());
         };
+    }
+
+    private Map<Key<?>, Object> getScopedObjects(Map<UI, Map<Key<?>, Object>> uisToScopedObjects) {
+        if (initializationScopeSet != null) {
+            return initializationScopeSet;
+        } else {
+            final UI currentUI = checkNotNull(UI.getCurrent());
+
+            return checkNotNull(uisToScopedObjects.get(currentUI));
+        }
     }
 
     Class<? extends UI> currentlyCreatedUIClass() {
