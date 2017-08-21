@@ -49,6 +49,11 @@ class UISetup extends AbstractMatcher<Binding<?>> implements ProvisionListener {
         if (!Component.class.equals(viewContainerClass)) {
 
             checkState(
+                !uiClass.equals(viewContainerClass),
+                "%s cannot be used as it's own viewContainer", uiClass
+            );
+
+            checkState(
                     viewContainerClass.isAnnotationPresent(UIScope.class),
                     "%s is annotated with having %s as it's viewContainer, but this class does not have a @UIScope annotation. " +
                             "ViewContainers must be put in UIScope",
@@ -99,6 +104,12 @@ class UISetup extends AbstractMatcher<Binding<?>> implements ProvisionListener {
         Class<? extends Component> contentClass = annotation.content();
 
         if (!Component.class.equals(contentClass)) {
+            checkState(
+                    !uiClass.equals(contentClass),
+                    "%s cannot be used as it's own content",
+                    uiClass
+            );
+
             checkState(
                     contentClass.isAnnotationPresent(com.vaadin.guice.annotation.UIScope.class),
                     "%s is annotated with having %s as it's viewContainer, but this class does not have a @UIScope annotation. " +
