@@ -14,6 +14,7 @@ import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.BootstrapListener;
 import com.vaadin.server.DeploymentConfiguration;
+import com.vaadin.server.RequestHandler;
 import com.vaadin.server.ServiceException;
 import com.vaadin.server.SessionInitEvent;
 import com.vaadin.server.SessionInitListener;
@@ -74,6 +75,7 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
     private VaadinSessionScope vaadinSessionScoper;
     private Set<Class<? extends VaadinServiceInitListener>> vaadinServiceInitListeners;
     private Set<Class<? extends BootstrapListener>> bootStrapListenerClasses;
+    private Set<Class<? extends RequestHandler>> requestHandlerClasses;
 
     @Override
     public void init(ServletConfig servletConfig) throws ServletException {
@@ -141,6 +143,7 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         this.uis = nonAbstractSubtypes(reflections, UI.class);
         this.bootStrapListenerClasses = nonAbstractSubtypes(reflections, BootstrapListener.class);
         this.vaadinServiceInitListeners = nonAbstractSubtypes(reflections, VaadinServiceInitListener.class);
+        this.requestHandlerClasses = nonAbstractSubtypes(reflections, RequestHandler.class);
         this.uiScoper = new UIScope();
         this.vaadinSessionScoper = new VaadinSessionScope();
         this.viewProvider = new GuiceViewProvider(views, this);
@@ -223,6 +226,11 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
                 .stream()
                 .map(getInjector()::getInstance)
                 .forEach(session::addBootstrapListener);
+
+        requestHandlerClasses
+                .stream()
+                .map(getInjector()::getInstance)
+                .forEach(session::addRequestHandler);
     }
 
     GuiceViewProvider getViewProvider() {
