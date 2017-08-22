@@ -3,9 +3,9 @@ Guice Vaadin
 
 Guice Vaadin is the official [Guice](https://github.com/google/guice) integration for [Vaadin Framework](https://github.com/vaadin/framework).
 
-#Usage
+#  usage
 
-##setting up the servlet
+## setting up the servlet
 
 first step is to set up the GuiceVaadinServlet, which needs a packagesToScan parameter holding the 
 names of all packages that should be scanned for UIs, Views, ViewChangeListeners and VaadinServiceInitListeners. 
@@ -14,7 +14,7 @@ Sub-packages of these packages are scanned as well.
 This can be done either by subclassing GuiceVaadinServlet and annotating it with @PackagesToScan, or by
 configuring a GuiceVaadinServlet in the deployment-descriptor.
 
-###configuration in java
+### configuration in java
 
 ```java
     package org.mypackage;
@@ -25,7 +25,7 @@ configuring a GuiceVaadinServlet in the deployment-descriptor.
     }
 ```
 
-###configuration in xml
+### configuration in xml
 
 ```xml
 <web-app xmlns="http://java.sun.com/xml/ns/javaee" version="2.5">
@@ -44,7 +44,7 @@ configuring a GuiceVaadinServlet in the deployment-descriptor.
 </web-app>
 ```
 
-##Setting up UI's
+## setting up UI's
 
 All packages in packagesToScan and their sub-packages are scanned for Vaadin-UI's. These UI's need to have a 
 GuiceUI-annotation. 
@@ -56,34 +56,25 @@ public class MyUI extends com.vaadin.ui.UI {
 ```
 
 In order to set up a Vaadin-Navigator, a 'viewContainer' is to be configured. A viewContainer is the second parameter
-to the Navigator's constructor.
+to the Navigator's constructor. The Content of a UI can also be configured via the annotation
 
 ```java
+@UIScope
 public class MyViewContainer extends Panel {
 }
-```
 
-```java
-@com.vaadin.guice.annotation.GuiceUI(viewContainer = MyViewContainer.class)
-public class MyUI extends com.vaadin.ui.UI {
-    
-    @javax.inject.Inject
-    private MyViewContainer myViewContainer;
-    
-    public void init(com.vaadin.server.VaadinRequest request){
-        
-    }
+@UIScope
+public class Content extends VerticalLayout {
+   @Inject
+   Content(MyHeader header, MyViewContainer viewContainer){
+      addComponents(header, viewContainer);
+   }
 }
-```
 
-```java
-@com.vaadin.guice.annotation.GuiceUI
+@GuiceUI(content = Content.class, viewContainer = MyViewContainer.class)
 public class MyUI extends com.vaadin.ui.UI {
-
-    
-
     public void init(com.vaadin.server.VaadinRequest request){
-        com.vaadin.navigator.Navigator navigator = new com.vaadin.navigator.Navigator(this)   
+         // can be left empty
     }
 }
 ```
