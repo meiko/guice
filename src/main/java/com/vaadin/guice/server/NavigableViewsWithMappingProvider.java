@@ -47,7 +47,7 @@ class NavigableViewsWithMappingProvider implements Provider<Map<String, Class<? 
         ImmutableMap.Builder<String, Class<? extends View>> builder = ImmutableMap.builder();
 
         guiceVaadinServlet
-                .getViews()
+                .getViewClasses()
                 .stream()
                 .filter(viewClass -> guiceVaadinServlet.isNavigable(uiClass, viewClass))
                 .filter(viewClass -> !viewClass.equals(annotation.errorView()))

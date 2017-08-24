@@ -68,14 +68,14 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
     private GuiceViewProvider viewProvider;
     private GuiceUIProvider guiceUIProvider;
     private UIScope uiScoper;
-    private Set<Class<? extends UI>> uis;
-    private Set<Class<? extends View>> views;
-    private Map<Class<? extends UI>, Set<Class<? extends ViewChangeListener>>> viewChangeListeners;
     private Injector injector;
     private VaadinSessionScope vaadinSessionScoper;
-    private Set<Class<? extends VaadinServiceInitListener>> vaadinServiceInitListeners;
+    private Set<Class<? extends UI>> uiClasses;
+    private Set<Class<? extends View>> viewClasses;
+    private Map<Class<? extends UI>, Set<Class<? extends ViewChangeListener>>> viewChangeListenerClasses;
     private Set<Class<? extends BootstrapListener>> bootStrapListenerClasses;
     private Set<Class<? extends RequestHandler>> requestHandlerClasses;
+    private Set<Class<? extends VaadinServiceInitListener>> vaadinServiceInitListenerClasses;
 
     @Override
     public void init(ServletConfig servletConfig) throws ServletException {
@@ -139,33 +139,33 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         */
         Module combinedModules = override(nonOverrideModules).with(overrideModules);
 
-        this.views = nonAbstractSubtypes(reflections, View.class);
-        this.uis = nonAbstractSubtypes(reflections, UI.class);
+        this.viewClasses = nonAbstractSubtypes(reflections, View.class);
+        this.uiClasses = nonAbstractSubtypes(reflections, UI.class);
         this.bootStrapListenerClasses = nonAbstractSubtypes(reflections, BootstrapListener.class);
-        this.vaadinServiceInitListeners = nonAbstractSubtypes(reflections, VaadinServiceInitListener.class);
+        this.vaadinServiceInitListenerClasses = nonAbstractSubtypes(reflections, VaadinServiceInitListener.class);
         this.requestHandlerClasses = nonAbstractSubtypes(reflections, RequestHandler.class);
         this.uiScoper = new UIScope();
         this.vaadinSessionScoper = new VaadinSessionScope();
-        this.viewProvider = new GuiceViewProvider(views, this);
+        this.viewProvider = new GuiceViewProvider(viewClasses, this);
         this.guiceUIProvider = new GuiceUIProvider(this);
 
-        this.viewChangeListeners = uis
+        this.viewChangeListenerClasses = uiClasses
                 .stream()
                 .collect(toMap(uiClass -> uiClass, uiClass -> new HashSet<>()));
 
-        uis.forEach(ui -> viewChangeListeners.put(ui, new HashSet<>()));
+        uiClasses.forEach(ui -> viewChangeListenerClasses.put(ui, new HashSet<>()));
 
         for (Class<? extends ViewChangeListener> viewChangeListenerClass : nonAbstractSubtypes(reflections, ViewChangeListener.class)) {
 
             final ForUI annotation = viewChangeListenerClass.getAnnotation(ForUI.class);
 
             if (annotation == null) {
-                viewChangeListeners.values().forEach(listeners -> listeners.add(viewChangeListenerClass));
+                viewChangeListenerClasses.values().forEach(listeners -> listeners.add(viewChangeListenerClass));
             } else {
                 checkArgument(annotation.value().length > 0, "ForUI#value must contain one ore more UI-classes");
 
                 for (Class<? extends UI> applicableUiClass : annotation.value()) {
-                    final Set<Class<? extends ViewChangeListener>> viewChangeListenersForUI = viewChangeListeners.get(applicableUiClass);
+                    final Set<Class<? extends ViewChangeListener>> viewChangeListenersForUI = viewChangeListenerClasses.get(applicableUiClass);
 
                     checkArgument(
                             viewChangeListenersForUI != null,
@@ -245,16 +245,16 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         return uiScoper;
     }
 
-    Set<Class<? extends View>> getViews() {
-        return views;
+    Set<Class<? extends View>> getViewClasses() {
+        return viewClasses;
     }
 
-    Set<Class<? extends UI>> getUis() {
-        return uis;
+    Set<Class<? extends UI>> getUiClasses() {
+        return uiClasses;
     }
 
     Set<Class<? extends ViewChangeListener>> getViewChangeListeners(Class<? extends UI> uiClass) {
-        return viewChangeListeners.get(uiClass);
+        return viewChangeListenerClasses.get(uiClass);
     }
 
     VaadinSessionScope getVaadinSessionScoper() {
@@ -262,7 +262,7 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
     }
 
     Iterator<VaadinServiceInitListener> getServiceInitListeners() {
-        return vaadinServiceInitListeners
+        return vaadinServiceInitListenerClasses
                 .stream()
                 .map(key -> (VaadinServiceInitListener) getInjector().getInstance(key))
                 .iterator();
@@ -316,7 +316,7 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
     boolean isNavigable(Class<? extends UI> uiClass, Class<? extends View> viewClass) {
         checkNotNull(viewClass);
 
-        if (!uis.contains(uiClass)) {
+        if (!uiClasses.contains(uiClass)) {
             //unknown ui, not navigable
             return false;
         }

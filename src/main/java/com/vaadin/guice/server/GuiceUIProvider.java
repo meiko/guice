@@ -37,7 +37,7 @@ class GuiceUIProvider extends UIProvider {
 
         pathToUIMap = new ConcurrentHashMap<>();
 
-        for (Class<? extends UI> uiClass : guiceVaadinServlet.getUis()) {
+        for (Class<? extends UI> uiClass : guiceVaadinServlet.getUiClasses()) {
 
             GuiceUI annotation = uiClass.getAnnotation(GuiceUI.class);
 

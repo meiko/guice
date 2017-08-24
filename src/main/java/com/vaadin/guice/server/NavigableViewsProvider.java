@@ -40,7 +40,7 @@ class NavigableViewsProvider implements Provider<Set<Class<? extends View>>> {
     private Set<Class<? extends View>> compute(Class<? extends UI> currentUIClass) {
         return ImmutableSet.copyOf(
                 guiceVaadinServlet
-                        .getViews()
+                        .getViewClasses()
                         .stream()
                         .filter(viewClass -> guiceVaadinServlet.isNavigable(currentUIClass, viewClass))
                         .iterator()
