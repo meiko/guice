@@ -70,16 +70,9 @@ public @interface GuiceUI {
     /**
      * the error-View
      *
-     * @see Navigator#setErrorView(Class)
-     */
-    Class<? extends View> errorView() default View.class;
-
-    /**
-     * the error-provider
-     *
      * @see Navigator#setErrorProvider(ViewProvider)
      */
-    Class<? extends ViewProvider> errorProvider() default ViewProvider.class;
+    Class<? extends View> errorView() default View.class;
 
     /**
      * the {@link UI}'s error-handler

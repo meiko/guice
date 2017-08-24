@@ -8,14 +8,12 @@ import com.vaadin.guice.annotation.GuiceUI;
 import com.vaadin.guice.annotation.UIScope;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewDisplay;
-import com.vaadin.navigator.ViewProvider;
 import com.vaadin.server.ErrorHandler;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.ComponentContainer;
 import com.vaadin.ui.SingleComponentContainer;
 import com.vaadin.ui.UI;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static java.lang.String.format;
 import static java.lang.reflect.Modifier.isAbstract;
@@ -80,14 +78,8 @@ class UISetup extends AbstractMatcher<Binding<?>> implements ProvisionListener {
                 );
             }
 
-            if (!ViewProvider.class.equals(annotation.errorProvider())) {
-                checkArgument(annotation.errorView().equals(View.class), "GuiceUI#errorView and GuiceUI#errorProvider cannot be set both");
-
-                final ViewProvider errorProvider = guiceVaadinServlet.getInjector().getInstance(annotation.errorProvider());
-
-                navigator.setErrorProvider(errorProvider);
-            } else if (!View.class.equals(annotation.errorView())) {
-                navigator.setErrorView(annotation.errorView());
+            if (!View.class.equals(annotation.errorView())) {
+                navigator.setErrorProvider(new ErrorViewProvider(guiceVaadinServlet, annotation.errorView()));
             }
 
             guiceVaadinServlet
