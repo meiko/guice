@@ -49,4 +49,10 @@ public @interface Import {
      * the {@link Module to be created}
      */
     Class<? extends Module> value();
+
+    /**
+     * new packages to be included in packagesToScan
+     * @see PackagesToScan#value()
+     */
+    String[] packagesToScan() default {};
 }
