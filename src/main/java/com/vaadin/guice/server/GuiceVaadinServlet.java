@@ -16,7 +16,9 @@ import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.BootstrapListener;
 import com.vaadin.server.DeploymentConfiguration;
 import com.vaadin.server.RequestHandler;
+import com.vaadin.server.ServiceDestroyListener;
 import com.vaadin.server.ServiceException;
+import com.vaadin.server.SessionDestroyListener;
 import com.vaadin.server.SessionInitEvent;
 import com.vaadin.server.SessionInitListener;
 import com.vaadin.server.VaadinService;
@@ -70,6 +72,9 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
     private Injector injector;
     private VaadinSessionScope vaadinSessionScoper;
     private Set<Class<?>> controllerClasses;
+    private Set<Class<? extends SessionInitListener>> sessionInitListenerClasses;
+    private Set<Class<? extends SessionDestroyListener>> sessionDestroyListenerClasses;
+    private Set<Class<? extends ServiceDestroyListener>> serviceDestroyListeners;
     private Set<Class<? extends UI>> uiClasses;
     private Set<Class<? extends View>> viewClasses;
     private Set<Class<? extends ViewChangeListener>> viewChangeListenerClasses;
@@ -160,6 +165,9 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         this.vaadinServiceInitListenerClasses = nonAbstractTypes(reflections.getSubTypesOf(VaadinServiceInitListener.class));
         this.requestHandlerClasses = nonAbstractTypes(reflections.getSubTypesOf(RequestHandler.class));
         this.controllerClasses = nonAbstractTypes(reflections.getTypesAnnotatedWith(Controller.class));
+        this.sessionInitListenerClasses = nonAbstractTypes(reflections.getSubTypesOf(SessionInitListener.class));
+        this.sessionDestroyListenerClasses = nonAbstractTypes(reflections.getSubTypesOf(SessionDestroyListener.class));
+        this.serviceDestroyListeners = nonAbstractTypes(reflections.getSubTypesOf(ServiceDestroyListener.class));
         this.uiScoper = new UIScope();
         this.vaadinSessionScoper = new VaadinSessionScope();
         this.viewProvider = new GuiceViewProvider(viewClasses, this);
@@ -184,9 +192,24 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
 
     @Override
     protected void servletInitialized() throws ServletException {
-        VaadinService
-                .getCurrent()
-                .addSessionInitListener(this);
+        final VaadinService vaadinService = VaadinService.getCurrent();
+
+        vaadinService.addSessionInitListener(this);
+
+        sessionInitListenerClasses
+            .stream()
+            .map(getInjector()::getInstance)
+            .forEach(vaadinService::addSessionInitListener);
+
+        sessionDestroyListenerClasses
+            .stream()
+            .map(getInjector()::getInstance)
+            .forEach(vaadinService::addSessionDestroyListener);
+
+        serviceDestroyListeners
+            .stream()
+            .map(getInjector()::getInstance)
+            .forEach(vaadinService::addServiceDestroyListener);
     }
 
     @Override
