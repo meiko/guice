@@ -3,6 +3,7 @@ package com.vaadin.guice.server;
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
 
+import com.vaadin.guice.annotation.Controller;
 import com.vaadin.guice.annotation.GuiceView;
 import com.vaadin.guice.annotation.NavigableViewClasses;
 import com.vaadin.guice.annotation.UIScope;
@@ -28,6 +29,7 @@ class VaadinModule extends AbstractModule {
     protected void configure() {
         bindScope(UIScope.class, guiceVaadinServlet.getUiScoper());
         bindScope(GuiceView.class, guiceVaadinServlet.getUiScoper());
+        bindScope(Controller.class, guiceVaadinServlet.getUiScoper());
         bindScope(VaadinSessionScope.class, guiceVaadinServlet.getVaadinSessionScoper());
 
         UISetup uiSetup = new UISetup(guiceVaadinServlet);
