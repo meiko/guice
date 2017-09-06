@@ -267,10 +267,7 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
 
     boolean appliesForUI(Class<? extends UI> uiClass, Class<?> clazz) {
 
-        if (!uiClasses.contains(uiClass)) {
-            //unknown ui
-            return false;
-        }
+        checkState(uiClasses.contains(uiClass), "ui class not registered: %s", uiClass);
 
         final ForUI forUI = clazz.getAnnotation(ForUI.class);
 
