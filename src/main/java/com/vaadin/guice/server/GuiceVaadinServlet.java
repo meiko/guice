@@ -249,36 +249,40 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
     }
 
     Set<Class<? extends ViewChangeListener>> getViewChangeListeners(Class<? extends UI> uiClass) {
-        return viewChangeListenerCache.computeIfAbsent(uiClass, this::getViewChangeListenerClassesInternal);
+        return viewChangeListenerCache.computeIfAbsent(uiClass, u -> getApplicable(u, viewChangeListenerClasses));
     }
 
     Iterable<Class<?>> getControllerClasses(Class<? extends UI> uiClass){
-        return controllerCache.computeIfAbsent(uiClass, this::getControllerClassesInternal);
+        return controllerCache.computeIfAbsent(uiClass, u -> getApplicable(u, controllerClasses));
     }
 
-    private Set<Class<? extends ViewChangeListener>> getViewChangeListenerClassesInternal(Class<? extends UI> uiClass){
+    private <T> Set<Class<? extends T>> getApplicable(Class<? extends UI> uiClass, Set<Class<? extends T>> classes){
         return ImmutableSet.copyOf(
-                viewChangeListenerClasses
-                        .stream()
-                        .filter(vclc -> appliesForUI(vclc, uiClass))
-                        .iterator()
+                classes
+                    .stream()
+                    .filter(t -> appliesForUI(uiClass, t))
+                    .iterator()
         );
     }
 
-    private Set<Class<?>> getControllerClassesInternal(Class<? extends UI> uiClass){
-        return ImmutableSet.copyOf(
-            controllerClasses
-                .stream()
-                .filter(cc -> appliesForUI(cc, uiClass))
-                .iterator()
-        );
-    }
+    boolean appliesForUI(Class<? extends UI> uiClass, Class<?> clazz) {
 
-    private boolean appliesForUI(Class<?> clazz, Class<? extends UI> ui) {
+        if (!uiClasses.contains(uiClass)) {
+            //unknown ui
+            return false;
+        }
 
         final ForUI forUI = clazz.getAnnotation(ForUI.class);
 
-        return forUI == null || asList(forUI.value()).contains(ui);
+        if(forUI == null){
+            return true;
+        }
+
+        final List<Class<? extends UI>> applicableUIs = asList(forUI.value());
+
+        checkArgument(!applicableUIs.isEmpty(), "@ForUI#value() must not be empty at %s", uiClass);
+
+        return applicableUIs.contains(uiClass);
     }
 
     private Module createModule(Class<? extends Module> moduleClass, Reflections reflections, Annotation annotation) {
@@ -324,27 +328,5 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
 
     Injector getInjector() {
         return checkNotNull(injector, "injector is not set up yet");
-    }
-
-    boolean isNavigable(Class<? extends UI> uiClass, Class<? extends View> viewClass) {
-        checkNotNull(viewClass);
-
-        if (!uiClasses.contains(uiClass)) {
-            //unknown ui, not navigable
-            return false;
-        }
-
-        ForUI forUI = viewClass.getAnnotation(ForUI.class);
-
-        if (forUI == null) {
-            //no @ForUI-annotation means that the view is not restricted to a particular set of UI's
-            return true;
-        }
-
-        final List<Class<? extends UI>> applicableUIs = asList(forUI.value());
-
-        checkArgument(!applicableUIs.isEmpty(), "@ForUI#value() must not be empty at %s", viewClass);
-
-        return applicableUIs.contains(uiClass);
     }
 }

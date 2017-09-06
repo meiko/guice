@@ -65,7 +65,7 @@ class GuiceViewProvider implements ViewProvider {
 
         final UI currentUI = UI.getCurrent();
 
-        return guiceVaadinServlet.isNavigable(currentUI.getClass(), viewClass) ? viewName : null;
+        return guiceVaadinServlet.appliesForUI(currentUI.getClass(), viewClass) ? viewName : null;
     }
 
     @Override

@@ -49,7 +49,7 @@ class NavigableViewsWithMappingProvider implements Provider<Map<String, Class<? 
         guiceVaadinServlet
                 .getViewClasses()
                 .stream()
-                .filter(viewClass -> guiceVaadinServlet.isNavigable(uiClass, viewClass))
+                .filter(viewClass -> guiceVaadinServlet.appliesForUI(uiClass, viewClass))
                 .filter(viewClass -> !viewClass.equals(annotation.errorView()))
                 .forEach(c -> builder.put(c.getAnnotation(GuiceView.class).value(), c));
 

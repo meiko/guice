@@ -42,7 +42,7 @@ class NavigableViewsProvider implements Provider<Set<Class<? extends View>>> {
                 guiceVaadinServlet
                         .getViewClasses()
                         .stream()
-                        .filter(viewClass -> guiceVaadinServlet.isNavigable(currentUIClass, viewClass))
+                        .filter(viewClass -> guiceVaadinServlet.appliesForUI(currentUIClass, viewClass))
                         .iterator()
         );
     }
