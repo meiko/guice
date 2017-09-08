@@ -165,7 +165,11 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         this.vaadinServiceInitListenerClasses = nonAbstractTypes(reflections.getSubTypesOf(VaadinServiceInitListener.class));
         this.requestHandlerClasses = nonAbstractTypes(reflections.getSubTypesOf(RequestHandler.class));
         this.controllerClasses = nonAbstractTypes(reflections.getTypesAnnotatedWith(Controller.class));
-        this.sessionInitListenerClasses = nonAbstractTypes(reflections.getSubTypesOf(SessionInitListener.class));
+        this.sessionInitListenerClasses = nonAbstractTypes(reflections.getSubTypesOf(SessionInitListener.class))
+                                            .stream()
+                                            .filter(cls -> !VaadinServlet.class.isAssignableFrom(cls))
+                                            .collect(toSet());
+
         this.sessionDestroyListenerClasses = nonAbstractTypes(reflections.getSubTypesOf(SessionDestroyListener.class));
         this.serviceDestroyListeners = nonAbstractTypes(reflections.getSubTypesOf(ServiceDestroyListener.class));
         this.uiScoper = new UIScope();
