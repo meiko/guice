@@ -1,6 +1,7 @@
 package com.vaadin.guice.server;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
 
 import com.vaadin.guice.annotation.Controller;
@@ -43,5 +44,11 @@ class VaadinModule extends AbstractModule {
         bind(mapOfViewClassesToStringsType)
                 .annotatedWith(NavigableViewClasses.class)
                 .toProvider(new NavigableViewsWithMappingProvider(guiceVaadinServlet));
+
+        guiceVaadinServlet
+                .getControllerClasses()
+                .stream()
+                .filter(c -> c.isAnnotationPresent(Singleton.class))
+                .forEach(c -> bind(c).asEagerSingleton());
     }
 }

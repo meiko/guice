@@ -275,9 +275,15 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         return viewChangeListenerCache.computeIfAbsent(uiClass, u -> getApplicable(u, viewChangeListenerClasses));
     }
 
+    Set<Class<?>> getControllerClasses(){
+        return controllerClasses;
+    }
+
     Iterable<Class<?>> getControllerClasses(Class<? extends UI> uiClass){
         return controllerCache.computeIfAbsent(uiClass, u -> getApplicable(u, controllerClasses));
     }
+
+
 
     private <T> Set<Class<? extends T>> getApplicable(Class<? extends UI> uiClass, Set<Class<? extends T>> classes){
         return ImmutableSet.copyOf(
