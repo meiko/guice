@@ -59,10 +59,6 @@ class ViewScope implements Scope {
         return uisToScopedViews.computeIfAbsent(currentUI, ui -> new HashMap<>());
     }
 
-    Class<? extends View> currentlyViewClass() {
-        return currentlyCreatedViewClass;
-    }
-
     void startScopeInit(Class<? extends View> currentlyCreatedViewClass) {
         checkState(initializationScopeSet == null);
         initializationScopeSet = new HashMap<>();

@@ -18,8 +18,8 @@ public @interface PackagesToScan {
 
     /**
      * A list of all packages that should be scanned for {@link UI}s, {@link View}s, {@link
-     * ViewChangeListener}s, {@link com.vaadin.server.BootstrapListener}s,
-     * {@link RequestHandler}s and {@link Module}s.
+     * ViewChangeListener}s, {@link com.vaadin.server.BootstrapListener}s, {@link RequestHandler}s
+     * and {@link Module}s.
      */
     String[] value();
 }

@@ -49,8 +49,8 @@ class UISetup extends AbstractMatcher<Binding<?>> implements ProvisionListener {
         if (!Component.class.equals(viewContainerClass)) {
 
             checkState(
-                !uiClass.equals(viewContainerClass),
-                "%s cannot be used as it's own viewContainer", uiClass
+                    !uiClass.equals(viewContainerClass),
+                    "%s cannot be used as it's own viewContainer", uiClass
             );
 
             checkState(

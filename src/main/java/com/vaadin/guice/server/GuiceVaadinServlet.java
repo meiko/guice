@@ -66,6 +66,7 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
 
     private static final Class<? super Provider<Injector>> injectorProviderType = new TypeLiteral<Provider<Injector>>() {
     }.getRawType();
+    private final Map<Class<? extends UI>, Set<Class<? extends ViewChangeListener>>> viewChangeListenerCache = new HashMap<>();
     private GuiceViewProvider viewProvider;
     private GuiceUIProvider guiceUIProvider;
     private UIScope uiScope;
@@ -82,7 +83,6 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
     private Set<Class<? extends BootstrapListener>> bootStrapListenerClasses;
     private Set<Class<? extends RequestHandler>> requestHandlerClasses;
     private Set<Class<? extends VaadinServiceInitListener>> vaadinServiceInitListenerClasses;
-    private final Map<Class<? extends UI>, Set<Class<? extends ViewChangeListener>>> viewChangeListenerCache = new HashMap<>();
 
     @Override
     public void init(ServletConfig servletConfig) throws ServletException {
@@ -94,9 +94,9 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
 
         if (!isNullOrEmpty(initParameter)) {
             checkState(
-                !annotationPresent,
-                "%s has both @PackagesToScan-annotation and an 'packagesToScan'-initParam",
-                getClass()
+                    !annotationPresent,
+                    "%s has both @PackagesToScan-annotation and an 'packagesToScan'-initParam",
+                    getClass()
             );
             packagesToScan = initParameter.split(",");
         } else if (annotationPresent) {
@@ -165,9 +165,9 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         this.requestHandlerClasses = nonAbstractTypes(reflections.getSubTypesOf(RequestHandler.class));
         this.controllerClasses = nonAbstractTypes(reflections.getTypesAnnotatedWith(Controller.class));
         this.sessionInitListenerClasses = nonAbstractTypes(reflections.getSubTypesOf(SessionInitListener.class))
-                                            .stream()
-                                            .filter(cls -> !VaadinServlet.class.isAssignableFrom(cls))
-                                            .collect(toSet());
+                .stream()
+                .filter(cls -> !VaadinServlet.class.isAssignableFrom(cls))
+                .collect(toSet());
 
         this.sessionDestroyListenerClasses = nonAbstractTypes(reflections.getSubTypesOf(SessionDestroyListener.class));
         this.serviceDestroyListeners = nonAbstractTypes(reflections.getSubTypesOf(ServiceDestroyListener.class));
@@ -177,7 +177,7 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         this.viewProvider = new GuiceViewProvider(viewClasses, this);
         this.guiceUIProvider = new GuiceUIProvider(this);
 
-        this.viewChangeListenerClasses =  nonAbstractTypes(reflections.getSubTypesOf(ViewChangeListener.class));
+        this.viewChangeListenerClasses = nonAbstractTypes(reflections.getSubTypesOf(ViewChangeListener.class));
 
         //sets up the basic vaadin stuff like UISetup
         VaadinModule vaadinModule = new VaadinModule(this);
@@ -201,19 +201,19 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         vaadinService.addSessionInitListener(this);
 
         sessionInitListenerClasses
-            .stream()
-            .map(getInjector()::getInstance)
-            .forEach(vaadinService::addSessionInitListener);
+                .stream()
+                .map(getInjector()::getInstance)
+                .forEach(vaadinService::addSessionInitListener);
 
         sessionDestroyListenerClasses
-            .stream()
-            .map(getInjector()::getInstance)
-            .forEach(vaadinService::addSessionDestroyListener);
+                .stream()
+                .map(getInjector()::getInstance)
+                .forEach(vaadinService::addSessionDestroyListener);
 
         serviceDestroyListeners
-            .stream()
-            .map(getInjector()::getInstance)
-            .forEach(vaadinService::addServiceDestroyListener);
+                .stream()
+                .map(getInjector()::getInstance)
+                .forEach(vaadinService::addServiceDestroyListener);
     }
 
     @Override
@@ -279,16 +279,16 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         return viewChangeListenerCache.computeIfAbsent(uiClass, u -> getApplicable(u, viewChangeListenerClasses));
     }
 
-    Set<Class<?>> getControllerClasses(){
+    Set<Class<?>> getControllerClasses() {
         return controllerClasses;
     }
 
-    private <T> Set<Class<? extends T>> getApplicable(Class<? extends UI> uiClass, Set<Class<? extends T>> classes){
+    private <T> Set<Class<? extends T>> getApplicable(Class<? extends UI> uiClass, Set<Class<? extends T>> classes) {
         return ImmutableSet.copyOf(
                 classes
-                    .stream()
-                    .filter(t -> appliesForUI(uiClass, t))
-                    .iterator()
+                        .stream()
+                        .filter(t -> appliesForUI(uiClass, t))
+                        .iterator()
         );
     }
 
@@ -298,7 +298,7 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
 
         final ForUI forUI = clazz.getAnnotation(ForUI.class);
 
-        if(forUI == null){
+        if (forUI == null) {
             return true;
         }
 

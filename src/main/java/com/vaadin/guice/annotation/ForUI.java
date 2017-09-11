@@ -8,9 +8,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * Annotation that adds {@link ViewChangeListener}s or {@link com.vaadin.navigator.View}s to only
- * a restricted set of {@link UI}'s. If this annotation is not present,
- * the ViewChangeListeners, Views or Controllers will be attached to all UI's
+ * Annotation that adds {@link ViewChangeListener}s or {@link com.vaadin.navigator.View}s to only a
+ * restricted set of {@link UI}'s. If this annotation is not present, the ViewChangeListeners, Views
+ * or Controllers will be attached to all UI's
  * <pre>
  * &#064;ForUI(MyUI.class) // will only be attached to MyUI
  * public class MyViewChangeListener implements ViewChangeListener{
@@ -32,7 +32,8 @@ import java.lang.annotation.Target;
 public @interface ForUI {
 
     /**
-     * A list of {@link UI}'s that the annotated ViewChangeListener, View or Controller will be attached to.
+     * A list of {@link UI}'s that the annotated ViewChangeListener, View or Controller will be
+     * attached to.
      */
     Class<? extends UI>[] value();
 }

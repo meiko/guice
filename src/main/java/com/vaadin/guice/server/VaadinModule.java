@@ -54,29 +54,29 @@ class VaadinModule extends AbstractModule {
         for (Class<?> controllerClass : guiceVaadinServlet.getControllerClasses()) {
             final Controller annotation = controllerClass.getAnnotation(Controller.class);
 
-            if(UI.class.isAssignableFrom(annotation.value())){
+            if (UI.class.isAssignableFrom(annotation.value())) {
                 //done in UISetup
                 continue;
             }
 
             bindListener(
-                new AbstractMatcher<Binding<?>>() {
-                    @Override
-                    public boolean matches(Binding<?> binding) {
+                    new AbstractMatcher<Binding<?>>() {
+                        @Override
+                        public boolean matches(Binding<?> binding) {
 
-                        final Class<?> rawType = binding.getKey().getTypeLiteral().getRawType();
+                            final Class<?> rawType = binding.getKey().getTypeLiteral().getRawType();
 
-                        return annotation.value().equals(rawType);
+                            return annotation.value().equals(rawType);
+                        }
+                    },
+                    new ProvisionListener() {
+                        @Override
+                        public <T> void onProvision(ProvisionInvocation<T> provisionInvocation) {
+                            provisionInvocation.provision();
+
+                            guiceVaadinServlet.getInjector().getInstance(controllerClass);
+                        }
                     }
-                },
-                new ProvisionListener() {
-                    @Override
-                    public <T> void onProvision(ProvisionInvocation<T> provisionInvocation) {
-                        provisionInvocation.provision();
-
-                        guiceVaadinServlet.getInjector().getInstance(controllerClass);
-                    }
-                }
             );
         }
     }

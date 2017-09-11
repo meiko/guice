@@ -3,7 +3,7 @@ package com.vaadin.guice.server;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewProvider;
 
-class ErrorViewProvider implements ViewProvider{
+class ErrorViewProvider implements ViewProvider {
 
     private final GuiceVaadinServlet guiceVaadinServlet;
     private final Class<? extends View> viewClass;

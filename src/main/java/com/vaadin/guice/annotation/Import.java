@@ -52,6 +52,7 @@ public @interface Import {
 
     /**
      * new packages to be included in packagesToScan
+     *
      * @see PackagesToScan#value()
      */
     String[] packagesToScan() default {};
