@@ -81,8 +81,6 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
     private Set<Class<? extends BootstrapListener>> bootStrapListenerClasses;
     private Set<Class<? extends RequestHandler>> requestHandlerClasses;
     private Set<Class<? extends VaadinServiceInitListener>> vaadinServiceInitListenerClasses;
-
-    private final Map<Class<? extends UI>, Set<Class<?>>> controllerCache = new HashMap<>();
     private final Map<Class<? extends UI>, Set<Class<? extends ViewChangeListener>>> viewChangeListenerCache = new HashMap<>();
 
     @Override
@@ -282,12 +280,6 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
     Set<Class<?>> getControllerClasses(){
         return controllerClasses;
     }
-
-    Iterable<Class<?>> getControllerClasses(Class<? extends UI> uiClass){
-        return controllerCache.computeIfAbsent(uiClass, u -> getApplicable(u, controllerClasses));
-    }
-
-
 
     private <T> Set<Class<? extends T>> getApplicable(Class<? extends UI> uiClass, Set<Class<? extends T>> classes){
         return ImmutableSet.copyOf(

@@ -2,6 +2,8 @@ package com.vaadin.guice.annotation;
 
 import com.google.inject.ScopeAnnotation;
 
+import com.vaadin.ui.Component;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
@@ -19,4 +21,15 @@ import java.lang.annotation.Target;
 @Documented
 @ScopeAnnotation
 public @interface Controller {
+
+    /**
+     * the Component that's to be bound to the annotated controller.
+     * This can also be a {@link com.vaadin.ui.UI}, as UI's are components, too.
+     * It is guaranteed that {@link com.google.inject.Injector#getInstance(Class)} is called
+     * for the annotated class after the component in 'value' was created. Depending on the {@link com.google.inject.Scope}
+     * of the annotation, it is not guaranteed that a new instance is created. However, the existence
+     * of at least one instance of the annotated class is guaranteed after an instance of the class
+     * of 'value' was created.
+     */
+    Class<? extends Component> value();
 }

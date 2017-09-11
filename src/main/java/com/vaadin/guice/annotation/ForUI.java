@@ -8,7 +8,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * Annotation that adds {@link ViewChangeListener}s, {@link com.vaadin.navigator.View}s or {@link Controller}s to only
+ * Annotation that adds {@link ViewChangeListener}s or {@link com.vaadin.navigator.View}s to only
  * a restricted set of {@link UI}'s. If this annotation is not present,
  * the ViewChangeListeners, Views or Controllers will be attached to all UI's
  * <pre>
