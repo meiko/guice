@@ -36,6 +36,8 @@ class UISetup extends AbstractMatcher<Binding<?>> implements ProvisionListener {
     public <T> void onProvision(ProvisionInvocation<T> provisionInvocation) {
         UI ui = (UI) provisionInvocation.provision();
 
+        UI.setCurrent(ui);
+
         final Class<? extends UI> uiClass = ui.getClass();
 
         GuiceUI annotation = uiClass.getAnnotation(GuiceUI.class);
