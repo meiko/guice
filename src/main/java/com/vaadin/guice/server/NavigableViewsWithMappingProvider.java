@@ -32,7 +32,7 @@ class NavigableViewsWithMappingProvider implements Provider<Map<String, Class<? 
         if (currentUI != null) {
             uiClass = currentUI.getClass();
         } else {
-            uiClass = checkNotNull(guiceVaadinServlet.getUiScoper().currentlyCreatedUIClass());
+            uiClass = checkNotNull(guiceVaadinServlet.getUiScope().currentlyCreatedUIClass());
         }
 
         return cache.computeIfAbsent(uiClass, this::compute);

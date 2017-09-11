@@ -68,7 +68,8 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
     }.getRawType();
     private GuiceViewProvider viewProvider;
     private GuiceUIProvider guiceUIProvider;
-    private UIScope uiScoper;
+    private UIScope uiScope;
+    private ViewScope viewScope;
     private Injector injector;
     private VaadinSessionScope vaadinSessionScoper;
     private Set<Class<?>> controllerClasses;
@@ -170,7 +171,8 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
 
         this.sessionDestroyListenerClasses = nonAbstractTypes(reflections.getSubTypesOf(SessionDestroyListener.class));
         this.serviceDestroyListeners = nonAbstractTypes(reflections.getSubTypesOf(ServiceDestroyListener.class));
-        this.uiScoper = new UIScope();
+        this.uiScope = new UIScope();
+        this.viewScope = new ViewScope();
         this.vaadinSessionScoper = new VaadinSessionScope();
         this.viewProvider = new GuiceViewProvider(viewClasses, this);
         this.guiceUIProvider = new GuiceUIProvider(this);
@@ -250,8 +252,8 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         return guiceUIProvider;
     }
 
-    UIScope getUiScoper() {
-        return uiScoper;
+    UIScope getUiScope() {
+        return uiScope;
     }
 
     Set<Class<? extends View>> getViewClasses() {
@@ -350,5 +352,9 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
 
     Injector getInjector() {
         return checkNotNull(injector, "injector is not set up yet");
+    }
+
+    public ViewScope getViewScope() {
+        return viewScope;
     }
 }

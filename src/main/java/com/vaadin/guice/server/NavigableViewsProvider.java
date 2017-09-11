@@ -31,7 +31,7 @@ class NavigableViewsProvider implements Provider<Set<Class<? extends View>>> {
         if (currentUI != null) {
             uiClass = currentUI.getClass();
         } else {
-            uiClass = checkNotNull(guiceVaadinServlet.getUiScoper().currentlyCreatedUIClass());
+            uiClass = checkNotNull(guiceVaadinServlet.getUiScope().currentlyCreatedUIClass());
         }
 
         return cache.computeIfAbsent(uiClass, this::compute);

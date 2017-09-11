@@ -11,6 +11,7 @@ import com.vaadin.guice.annotation.GuiceView;
 import com.vaadin.guice.annotation.NavigableViewClasses;
 import com.vaadin.guice.annotation.UIScope;
 import com.vaadin.guice.annotation.VaadinSessionScope;
+import com.vaadin.guice.annotation.ViewScope;
 import com.vaadin.navigator.View;
 import com.vaadin.ui.UI;
 
@@ -31,9 +32,10 @@ class VaadinModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        bindScope(UIScope.class, guiceVaadinServlet.getUiScoper());
-        bindScope(GuiceView.class, guiceVaadinServlet.getUiScoper());
-        bindScope(Controller.class, guiceVaadinServlet.getUiScoper());
+        bindScope(UIScope.class, guiceVaadinServlet.getUiScope());
+        bindScope(GuiceView.class, guiceVaadinServlet.getUiScope());
+        bindScope(Controller.class, guiceVaadinServlet.getUiScope());
+        bindScope(ViewScope.class, guiceVaadinServlet.getViewScope());
         bindScope(VaadinSessionScope.class, guiceVaadinServlet.getVaadinSessionScoper());
 
         UISetup uiSetup = new UISetup(guiceVaadinServlet);

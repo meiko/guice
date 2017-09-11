@@ -1,5 +1,7 @@
 package com.vaadin.guice.server;
 
+import com.google.inject.Injector;
+
 import com.vaadin.guice.annotation.GuiceView;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewProvider;
@@ -72,6 +74,19 @@ class GuiceViewProvider implements ViewProvider {
     public View getView(String viewName) {
         Class<? extends View> viewClass = viewNamesToViewClassesMap.get(viewName);
 
-        return guiceVaadinServlet.getInjector().getInstance(viewClass);
+        final ViewScope viewScope = guiceVaadinServlet.getViewScope();
+        final Injector injector = guiceVaadinServlet.getInjector();
+
+        try {
+            viewScope.startScopeInit(viewClass);
+
+            View view = injector.getInstance(viewClass);
+
+            viewScope.flushInitialScopeSet(view);
+
+            return view;
+        } finally {
+            viewScope.endScopeInit();
+        }
     }
 }

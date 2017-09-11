@@ -99,7 +99,7 @@ class GuiceUIProvider extends UIProvider {
 
     @Override
     public synchronized UI createInstance(UICreateEvent event) {
-        final UIScope uiScoper = guiceVaadinServlet.getUiScoper();
+        final UIScope uiScoper = guiceVaadinServlet.getUiScope();
         final Injector injector = guiceVaadinServlet.getInjector();
 
         try {
