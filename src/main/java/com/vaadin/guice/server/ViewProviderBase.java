@@ -22,16 +22,18 @@ abstract class ViewProviderBase implements ViewProvider {
         final ViewScope viewScope = guiceVaadinServlet.getViewScope();
         final Injector injector = guiceVaadinServlet.getInjector();
 
-        try {
-            viewScope.startScopeInit(viewClass);
+        synchronized (viewScope) {
+            try {
+                viewScope.startScopeInit(viewClass);
 
-            View view = injector.getInstance(viewClass);
+                View view = injector.getInstance(viewClass);
 
-            viewScope.flushInitialScopeSet(view);
+                viewScope.flushInitialScopeSet(view);
 
-            return view;
-        } finally {
-            viewScope.endScopeInit();
+                return view;
+            } finally {
+                viewScope.endScopeInit();
+            }
         }
     }
 }
