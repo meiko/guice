@@ -1,15 +1,13 @@
 package com.vaadin.guice.server;
 
 import com.vaadin.navigator.View;
-import com.vaadin.navigator.ViewProvider;
 
-class ErrorViewProvider implements ViewProvider {
+class ErrorViewProvider extends ViewProviderBase {
 
-    private final GuiceVaadinServlet guiceVaadinServlet;
     private final Class<? extends View> viewClass;
 
     ErrorViewProvider(GuiceVaadinServlet guiceVaadinServlet, Class<? extends View> viewClass) {
-        this.guiceVaadinServlet = guiceVaadinServlet;
+        super(guiceVaadinServlet);
         this.viewClass = viewClass;
     }
 
@@ -20,6 +18,6 @@ class ErrorViewProvider implements ViewProvider {
 
     @Override
     public View getView(String viewName) {
-        return guiceVaadinServlet.getInjector().getInstance(viewClass);
+        return getView(viewClass);
     }
 }

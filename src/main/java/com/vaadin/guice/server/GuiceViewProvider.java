@@ -1,7 +1,5 @@
 package com.vaadin.guice.server;
 
-import com.google.inject.Injector;
-
 import com.vaadin.guice.annotation.GuiceView;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewProvider;
@@ -24,12 +22,12 @@ import static java.util.stream.Collectors.toMap;
  * @author Bernd Hopp (bernd@vaadin.com)
  * @see GuiceView
  */
-class GuiceViewProvider implements ViewProvider {
+class GuiceViewProvider extends ViewProviderBase {
 
     private final Map<String, Class<? extends View>> viewNamesToViewClassesMap;
-    private final GuiceVaadinServlet guiceVaadinServlet;
 
     GuiceViewProvider(Set<Class<? extends View>> viewClasses, GuiceVaadinServlet guiceVaadinServlet) {
+        super(guiceVaadinServlet);
 
         viewClasses.forEach(c -> checkArgument(c.isAnnotationPresent(GuiceView.class), "GuiceView-annotation missing at %s", c));
 
@@ -42,7 +40,6 @@ class GuiceViewProvider implements ViewProvider {
                         )
                 );
 
-        this.guiceVaadinServlet = guiceVaadinServlet;
     }
 
     @Override
@@ -72,21 +69,7 @@ class GuiceViewProvider implements ViewProvider {
 
     @Override
     public View getView(String viewName) {
-        Class<? extends View> viewClass = viewNamesToViewClassesMap.get(viewName);
-
-        final ViewScope viewScope = guiceVaadinServlet.getViewScope();
-        final Injector injector = guiceVaadinServlet.getInjector();
-
-        try {
-            viewScope.startScopeInit(viewClass);
-
-            View view = injector.getInstance(viewClass);
-
-            viewScope.flushInitialScopeSet(view);
-
-            return view;
-        } finally {
-            viewScope.endScopeInit();
-        }
+        return getView(viewNamesToViewClassesMap.get(viewName));
     }
+
 }

@@ -27,13 +27,9 @@ class ViewScope implements Scope {
     @SuppressWarnings("unchecked")
     public <T> Provider<T> scope(Key<T> key, Provider<T> provider) {
         return () -> {
-            Map<Key<?>, Object> scopeMap;
-
-            if (initializationScopeSet != null) {
-                scopeMap = initializationScopeSet;
-            } else {
-                scopeMap = getScopeMap();
-            }
+            Map<Key<?>, Object> scopeMap = initializationScopeSet != null
+                    ? initializationScopeSet
+                    : getScopeMap();
 
             return (T) scopeMap.computeIfAbsent(key, k -> provider.get());
         };
