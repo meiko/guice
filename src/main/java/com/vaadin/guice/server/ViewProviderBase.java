@@ -12,12 +12,6 @@ abstract class ViewProviderBase implements ViewProvider {
         this.guiceVaadinServlet = guiceVaadinServlet;
     }
 
-    @Override
-    public abstract String getViewName(String viewNameAndParameters);
-
-    @Override
-    public abstract View getView(String viewName);
-
     View getView(Class<? extends View> viewClass) {
         final ViewScope viewScope = guiceVaadinServlet.getViewScope();
         final Injector injector = guiceVaadinServlet.getInjector();
