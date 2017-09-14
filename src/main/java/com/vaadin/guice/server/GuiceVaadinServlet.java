@@ -174,7 +174,7 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         this.uiScope = new UIScope();
         this.viewScope = new ViewScope();
         this.vaadinSessionScoper = new VaadinSessionScope();
-        this.viewProvider = new GuiceViewProvider(viewClasses, this);
+        this.viewProvider = new GuiceViewProvider(this);
         this.guiceUIProvider = new GuiceUIProvider(this);
 
         this.viewChangeListenerClasses = nonAbstractTypes(reflections.getSubTypesOf(ViewChangeListener.class));

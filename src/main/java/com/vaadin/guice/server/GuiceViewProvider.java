@@ -6,9 +6,8 @@ import com.vaadin.navigator.ViewProvider;
 import com.vaadin.ui.UI;
 
 import java.util.Map;
-import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toMap;
 
@@ -24,22 +23,26 @@ import static java.util.stream.Collectors.toMap;
  */
 class GuiceViewProvider extends ViewProviderBase {
 
-    private final Map<String, Class<? extends View>> viewNamesToViewClassesMap;
+    private final Map<Class<? extends UI>, Map<String, Class<? extends View>>> viewMap = new ConcurrentHashMap<>();
 
-    GuiceViewProvider(Set<Class<? extends View>> viewClasses, GuiceVaadinServlet guiceVaadinServlet) {
+    GuiceViewProvider(GuiceVaadinServlet guiceVaadinServlet) {
         super(guiceVaadinServlet);
 
-        viewClasses.forEach(c -> checkArgument(c.isAnnotationPresent(GuiceView.class), "GuiceView-annotation missing at %s", c));
+        for (Class<? extends UI> uiClass : guiceVaadinServlet.getUiClasses()) {
 
-        viewNamesToViewClassesMap = viewClasses
+            Map<String, Class<? extends View>> uiSpecificViewMap = guiceVaadinServlet
+                .getViewClasses()
                 .stream()
+                .filter(vc -> guiceVaadinServlet.appliesForUI(uiClass, vc))
                 .collect(
-                        toMap(
-                                viewClass -> viewClass.getAnnotation(GuiceView.class).value().toLowerCase(),
-                                viewClass -> viewClass
-                        )
-                );
+                    toMap(
+                        vc -> vc.getAnnotation(GuiceView.class).value().toLowerCase(),
+                        vc -> vc
+                    )
+            );
 
+            viewMap.put(uiClass, uiSpecificViewMap);
+        }
     }
 
     @Override
@@ -55,21 +58,23 @@ class GuiceViewProvider extends ViewProviderBase {
         //view-names are case-insensitive
         viewName = viewName.toLowerCase();
 
-        final Class<? extends View> viewClass = viewNamesToViewClassesMap.get(viewName);
+        final UI currentUI = checkNotNull(UI.getCurrent());
+
+        final Map<String, Class<? extends View>> uiSpecificViewMap = viewMap.get(currentUI.getClass());
 
         //if no view is registered under this name, null is to be returned
-        if (viewClass == null) {
-            return null;
-        }
-
-        final UI currentUI = UI.getCurrent();
-
-        return guiceVaadinServlet.appliesForUI(currentUI.getClass(), viewClass) ? viewName : null;
+        return uiSpecificViewMap.containsKey(viewName) ? viewName : null;
     }
 
     @Override
     public View getView(String viewName) {
-        return getView(viewNamesToViewClassesMap.get(viewName));
-    }
 
+        final UI currentUI = checkNotNull(UI.getCurrent());
+
+        final Map<String, Class<? extends View>> uiSpecificViewMap = checkNotNull(viewMap.get(currentUI.getClass()));
+
+        final Class<? extends View> viewClass = checkNotNull(uiSpecificViewMap.get(viewName));
+
+        return getView(viewClass);
+    }
 }
