@@ -31,15 +31,15 @@ class GuiceViewProvider extends ViewProviderBase {
         for (Class<? extends UI> uiClass : guiceVaadinServlet.getUiClasses()) {
 
             Map<String, Class<? extends View>> uiSpecificViewMap = guiceVaadinServlet
-                .getViewClasses()
-                .stream()
-                .filter(vc -> guiceVaadinServlet.appliesForUI(uiClass, vc))
-                .collect(
-                    toMap(
-                        vc -> vc.getAnnotation(GuiceView.class).value().toLowerCase(),
-                        vc -> vc
-                    )
-            );
+                    .getViewClasses()
+                    .stream()
+                    .filter(vc -> guiceVaadinServlet.appliesForUI(uiClass, vc))
+                    .collect(
+                            toMap(
+                                    vc -> vc.getAnnotation(GuiceView.class).value().toLowerCase(),
+                                    vc -> vc
+                            )
+                    );
 
             viewMap.put(uiClass, uiSpecificViewMap);
         }

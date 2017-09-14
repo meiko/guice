@@ -102,7 +102,7 @@ class GuiceUIProvider extends UIProvider {
         final UIScope uiScoper = guiceVaadinServlet.getUiScope();
         final Injector injector = guiceVaadinServlet.getInjector();
 
-        synchronized (uiScoper){
+        synchronized (uiScoper) {
             try {
                 final Class<? extends UI> uiClass = event.getUIClass();
 
