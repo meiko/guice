@@ -67,6 +67,7 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
     private static final Class<? super Provider<Injector>> injectorProviderType = new TypeLiteral<Provider<Injector>>() {
     }.getRawType();
     private final Map<Class<? extends UI>, Set<Class<? extends ViewChangeListener>>> viewChangeListenerCache = new HashMap<>();
+    private final Map<Class<? extends UI>, Set<Class<?>>> controllerCache = new HashMap<>();
     private GuiceViewProvider viewProvider;
     private GuiceUIProvider guiceUIProvider;
     private UIScope uiScope;
@@ -279,8 +280,21 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         return viewChangeListenerCache.computeIfAbsent(uiClass, u -> getApplicable(u, viewChangeListenerClasses));
     }
 
+    Set<Class<?>> getControllerClasses(Class<? extends UI> uiClass){
+        return controllerCache.computeIfAbsent(uiClass, uic -> getApplicableControllers(uic, controllerClasses));
+    }
+
     Set<Class<?>> getControllerClasses() {
         return controllerClasses;
+    }
+
+    private <T> Set<Class<? extends T>> getApplicableControllers(Class<? extends UI> uiClass, Set<Class<? extends T>> classes) {
+        return ImmutableSet.copyOf(
+                classes
+                        .stream()
+                        .filter(t -> t.getAnnotation(Controller.class).value().equals(uiClass))
+                        .iterator()
+        );
     }
 
     private <T> Set<Class<? extends T>> getApplicable(Class<? extends UI> uiClass, Set<Class<? extends T>> classes) {

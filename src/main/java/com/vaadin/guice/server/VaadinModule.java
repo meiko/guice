@@ -34,7 +34,6 @@ class VaadinModule extends AbstractModule {
     protected void configure() {
         bindScope(UIScope.class, guiceVaadinServlet.getUiScope());
         bindScope(GuiceView.class, guiceVaadinServlet.getUiScope());
-        bindScope(Controller.class, guiceVaadinServlet.getUiScope());
         bindScope(ViewScope.class, guiceVaadinServlet.getViewScope());
         bindScope(VaadinSessionScope.class, guiceVaadinServlet.getVaadinSessionScoper());
 
