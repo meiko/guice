@@ -3,9 +3,12 @@ package com.vaadin.guice.server;
 import com.vaadin.guice.annotation.GuiceView;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewProvider;
+import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.UI;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -23,6 +26,7 @@ import static java.util.stream.Collectors.toMap;
  */
 class GuiceViewProvider extends ViewProviderBase {
 
+    private final Map<VaadinSession, Map<UI, Map<String, View>>> viewCache = new WeakHashMap<>();
     private final Map<Class<? extends UI>, Map<String, Class<? extends View>>> viewMap = new ConcurrentHashMap<>();
 
     GuiceViewProvider(GuiceVaadinServlet guiceVaadinServlet) {
@@ -69,9 +73,22 @@ class GuiceViewProvider extends ViewProviderBase {
     @Override
     public View getView(String viewName) {
 
-        final UI currentUI = checkNotNull(UI.getCurrent());
+        final VaadinSession vaadinSession = checkNotNull(
+            VaadinSession.getCurrent(),
+            "VaadinSession is not set up yet"
+        );
 
-        final Map<String, Class<? extends View>> uiSpecificViewMap = checkNotNull(viewMap.get(currentUI.getClass()));
+        final Map<UI, Map<String, View>> uiToViewsMap = viewCache.computeIfAbsent(vaadinSession, s -> new HashMap<>());
+
+        final UI ui = checkNotNull(UI.getCurrent(), "current UI is not set up yet");
+
+        final Map<String, View> viewMap = uiToViewsMap.computeIfAbsent(ui, u -> new HashMap<>());
+
+        return viewMap.computeIfAbsent(viewName, vn -> createView(ui, viewName));
+    }
+
+    private View createView(UI ui, String viewName) {
+        final Map<String, Class<? extends View>> uiSpecificViewMap = checkNotNull(this.viewMap.get(ui.getClass()));
 
         final Class<? extends View> viewClass = checkNotNull(uiSpecificViewMap.get(viewName));
 

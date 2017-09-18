@@ -5,6 +5,7 @@ import com.vaadin.navigator.View;
 class ErrorViewProvider extends ViewProviderBase {
 
     private final Class<? extends View> viewClass;
+    private View instance;
 
     ErrorViewProvider(GuiceVaadinServlet guiceVaadinServlet, Class<? extends View> viewClass) {
         super(guiceVaadinServlet);
@@ -18,6 +19,10 @@ class ErrorViewProvider extends ViewProviderBase {
 
     @Override
     public View getView(String viewName) {
-        return getView(viewClass);
+        if(instance == null){
+            instance = getView(viewClass);
+        }
+
+        return instance;
     }
 }

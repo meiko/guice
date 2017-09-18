@@ -25,7 +25,10 @@ class UIScope implements Scope {
     @SuppressWarnings("unchecked")
     public <T> Provider<T> scope(Key<T> key, Provider<T> provider) {
         return () -> {
-            final VaadinSession vaadinSession = checkNotNull(VaadinSession.getCurrent());
+            final VaadinSession vaadinSession = checkNotNull(
+                VaadinSession.getCurrent(),
+                "VaadinSession is not set up yet."
+            );
 
             Map<UI, Map<Key<?>, Object>> uisToScopedObjects = scopesBySession.computeIfAbsent(vaadinSession, session -> new WeakHashMap<>());
 
@@ -39,7 +42,7 @@ class UIScope implements Scope {
         if (initializationScopeSet != null) {
             return initializationScopeSet;
         } else {
-            final UI currentUI = checkNotNull(UI.getCurrent());
+            final UI currentUI = checkNotNull(UI.getCurrent(), "current UI is not set up yet");
 
             return checkNotNull(uisToScopedObjects.get(currentUI));
         }

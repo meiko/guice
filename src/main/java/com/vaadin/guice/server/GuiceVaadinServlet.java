@@ -364,7 +364,7 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         throw new IllegalStateException("no suitable constructor found for %s" + moduleClass);
     }
 
-    Injector getInjector() {
+    protected Injector getInjector() {
         return checkNotNull(injector, "injector is not set up yet");
     }
 
