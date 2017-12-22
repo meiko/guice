@@ -86,6 +86,10 @@ class GuiceUIProvider extends UIProvider {
     private String getPath(UIClassSelectionEvent uiClassSelectionEvent) {
         String path = uiClassSelectionEvent.getRequest().getPathInfo();
 
+        if(path == null){
+            return "";
+        }
+
         final int indexOfBang = path.indexOf('!');
 
         if (indexOfBang > -1) {
