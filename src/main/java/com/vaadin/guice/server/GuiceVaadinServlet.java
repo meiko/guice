@@ -196,7 +196,7 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
     }
 
     @Override
-    protected void servletInitialized() throws ServletException {
+    protected void servletInitialized() {
         final VaadinService vaadinService = VaadinService.getCurrent();
 
         vaadinService.addSessionInitListener(this);
@@ -223,7 +223,7 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
     }
 
     @Override
-    public void sessionInit(SessionInitEvent event) throws ServiceException {
+    public void sessionInit(SessionInitEvent event) {
         VaadinSession session = event.getSession();
 
         // remove UIProvider instances to avoid mapping
