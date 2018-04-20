@@ -2,43 +2,35 @@
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>guice-vaadin</artifactId>
+    <groupId>com.vaadin.addon</groupId>
+    <artifactId>flow-guice-addon</artifactId>
+    <name>Flow Guice Add-On</name>
+    <version>2.3.0-vaadin10</version>
     <packaging>jar</packaging>
-    <groupId>com.vaadin</groupId>
-    <version>2.0.1-vaadin8</version>
-    <name>guice-vaadin</name>
-    <description>
-        Provides Google Guice integration for Vaadin applications.
-    </description>
+    <description>Provides Google Guice integration for Vaadin applications.</description>
     <url>https://github.com/vaadin/guice</url>
     <properties>
-        <project.build.encoding>UTF-8</project.build.encoding>
-        <project.build.target>1.8</project.build.target>
-        <project.build.source>1.8</project.build.source>
+        <Implementation-Title>Guice Vaadin integration</Implementation-Title>
         <Vaadin-License-Title>Apache License 2.0</Vaadin-License-Title>
         <Implementation-Vendor>Bernd Hopp</Implementation-Vendor>
-        <Implementation-Title>Guice Vaadin integration</Implementation-Title>
+        <guava.version>24.1-jre</guava.version>
         <guice.version>4.2.0</guice.version>
-        <vaadin.version>[8.0.0,)</vaadin.version>
-        <reflections.version>0.9.11</reflections.version>
+        <java-source.version>1.8</java-source.version>
+        <java-target.version>1.8</java-target.version>
         <javassist.version>3.22.0-CR2</javassist.version>
-        <mockito-core.version>2.17.0</mockito-core.version>
-        <maven-surefire-plugin.version>2.10</maven-surefire-plugin.version>
-        <maven-jar-plugin.version>2.3.1</maven-jar-plugin.version>
         <javax.servlet-api.version>[3.0.0,)</javax.servlet-api.version>
         <junit.version>4.12</junit.version>
         <maven-compiler-plugin.version>3.5.1</maven-compiler-plugin.version>
-        <guava.version>24.1-jre</guava.version>
-        <java-source.version>1.8</java-source.version>
-        <java-target.version>1.8</java-target.version>
+        <maven-jar-plugin.version>2.3.1</maven-jar-plugin.version>
+        <maven-surefire-plugin.version>2.10</maven-surefire-plugin.version>
+        <mockito-core.version>2.18.0</mockito-core.version>
+        <project.build.encoding>UTF-8</project.build.encoding>
+        <project.build.source>1.8</project.build.source>
+        <project.build.target>1.8</project.build.target>
+        <reflections.version>0.9.11</reflections.version>
+        <flow.version>[1.0.0.beta4,)</flow.version>
     </properties>
     <dependencies>
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>${javax.servlet-api.version}</version>
-            <scope>provided</scope>
-        </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
@@ -50,25 +42,21 @@
             <version>${guice.version}</version>
             <exclusions>
                 <exclusion>
-                    <groupId>com.google.guava</groupId>
                     <artifactId>guava</artifactId>
+                    <groupId>com.google.guava</groupId>
                 </exclusion>
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.reflections</groupId>
-            <artifactId>reflections</artifactId>
-            <version>${reflections.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>javassist</groupId>
-                    <artifactId>javassist</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.google.guava</groupId>
-                    <artifactId>guava</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>com.vaadin</groupId>
+            <artifactId>flow</artifactId>
+            <version>${flow.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>${javax.servlet-api.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.javassist</groupId>
@@ -76,10 +64,19 @@
             <version>${javassist.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.vaadin</groupId>
-            <artifactId>vaadin-server</artifactId>
-            <version>${vaadin.version}</version>
-            <scope>provided</scope>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>${reflections.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>guava</artifactId>
+                    <groupId>com.google.guava</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>javassist</artifactId>
+                    <groupId>javassist</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -104,7 +101,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-		<version>3.0.1</version>
+                <version>3.0.1</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -117,21 +114,18 @@
                     <archive>
                         <manifest>
                             <addClasspath>false</addClasspath>
-                            <!-- Implementation-Title and Implementation-Version come from the
-                                POM by default -->
-                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                         </manifest>
                         <manifestEntries>
-                            <Implementation-Vendor>${Implementation-Vendor}}</Implementation-Vendor>
                             <Implementation-Title>${Implementation-Title}</Implementation-Title>
                             <!-- Package format version - do not change -->
                             <Vaadin-Package-Version>1</Vaadin-Package-Version>
                             <Vaadin-License-Title>${Vaadin-License-Title}</Vaadin-License-Title>
+                            <Implementation-Vendor>${Implementation-Vendor}</Implementation-Vendor>
                         </manifestEntries>
                     </archive>
                     <!-- exclude other META-INF data under build directory -->
                     <includes>
-                        <include>META-INF/maven/${project.groupId}/${project.artifactId}/**</include>
+                        <include>META-INF/maven/com.vaadin/${project.artifactId}/**</include>
                         <include>com/**</include>
                     </includes>
                 </configuration>
@@ -154,22 +148,20 @@
                         <manifest>
                             <addClasspath>false</addClasspath>
                             <!-- Implementation-Title and Implementation-Version come from the
-                                POM by default -->
+                            POM by default -->
                             <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                         </manifest>
                         <manifestEntries>
                             <Implementation-Title>${Implementation-Title}</Implementation-Title>
                             <!-- Package format version - do not change -->
-                            <Implementation-Vendor>${Implementation-Vendor}</Implementation-Vendor>
-
                             <Vaadin-Package-Version>1</Vaadin-Package-Version>
-
+                            <Implementation-Vendor>${Implementation-Vendor}</Implementation-Vendor>
                             <Vaadin-License-Title>${Vaadin-License-Title}</Vaadin-License-Title>
                         </manifestEntries>
                     </archive>
                     <!-- exclude other META-INF data under build directory -->
                     <includes>
-                        <include>META-INF/maven/${project.groupId}/${project.artifactId}/**</include>
+                        <include>META-INF/maven/com.vaadin/${project.artifactId}/**</include>
                         <include>com/**</include>
                     </includes>
                 </configuration>

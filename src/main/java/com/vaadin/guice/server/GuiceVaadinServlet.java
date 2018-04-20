@@ -1,32 +1,44 @@
+/*
+ * Copyright 2000-2017 Vaadin Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package com.vaadin.guice.server;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
 import com.google.inject.TypeLiteral;
+import com.google.inject.util.Modules;
 
-import com.vaadin.guice.annotation.Controller;
-import com.vaadin.guice.annotation.ForUI;
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.function.DeploymentConfiguration;
+import com.vaadin.flow.i18n.I18NProvider;
+import com.vaadin.flow.server.RequestHandler;
+import com.vaadin.flow.server.ServiceDestroyListener;
+import com.vaadin.flow.server.ServiceException;
+import com.vaadin.flow.server.SessionDestroyListener;
+import com.vaadin.flow.server.SessionInitEvent;
+import com.vaadin.flow.server.SessionInitListener;
+import com.vaadin.flow.server.VaadinService;
+import com.vaadin.flow.server.VaadinServiceInitListener;
+import com.vaadin.flow.server.VaadinServlet;
+import com.vaadin.flow.server.VaadinServletService;
+import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.guice.annotation.Import;
 import com.vaadin.guice.annotation.OverrideBindings;
 import com.vaadin.guice.annotation.PackagesToScan;
-import com.vaadin.navigator.View;
-import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.server.BootstrapListener;
-import com.vaadin.server.DeploymentConfiguration;
-import com.vaadin.server.RequestHandler;
-import com.vaadin.server.ServiceDestroyListener;
-import com.vaadin.server.ServiceException;
-import com.vaadin.server.SessionDestroyListener;
-import com.vaadin.server.SessionInitEvent;
-import com.vaadin.server.SessionInitListener;
-import com.vaadin.server.VaadinService;
-import com.vaadin.server.VaadinServiceInitListener;
-import com.vaadin.server.VaadinServlet;
-import com.vaadin.server.VaadinServletService;
-import com.vaadin.server.VaadinSession;
-import com.vaadin.ui.UI;
 
 import org.reflections.Reflections;
 
@@ -34,56 +46,48 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.collect.Iterables.concat;
+import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.inject.Guice.createInjector;
 import static com.google.inject.util.Modules.override;
 import static java.lang.reflect.Modifier.isAbstract;
-import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
 
 /**
- * Subclass of the standard {@link com.vaadin.server.VaadinServlet Vaadin servlet} that adds a
- * {@link GuiceUIProvider} to every new Vaadin session
+ * Subclass of the standard {@link com.vaadin.flow.server.VaadinServlet Vaadin servlet}
  *
  * @author Bernd Hopp (bernd@vaadin.com)
  */
 @SuppressWarnings("unused")
-public class GuiceVaadinServlet extends VaadinServlet implements SessionInitListener {
+public class GuiceVaadinServlet extends VaadinServlet {
 
     private static final Class<? super Provider<Injector>> injectorProviderType = new TypeLiteral<Provider<Injector>>() {
     }.getRawType();
-    private final Map<Class<? extends UI>, Set<Class<? extends ViewChangeListener>>> viewChangeListenerCache = new HashMap<>();
-    private final Map<Class<? extends UI>, Set<Class<?>>> controllerCache = new HashMap<>();
-    private GuiceViewProvider viewProvider;
-    private GuiceUIProvider guiceUIProvider;
-    private UIScope uiScope;
-    private ViewScope viewScope;
+
+    private final UIScope uiScope = new UIScope();
+    private final VaadinSessionScope vaadinSessionScope = new VaadinSessionScope();
     private Injector injector;
-    private VaadinSessionScope vaadinSessionScoper;
-    private Set<Class<?>> controllerClasses;
-    private Set<Class<? extends SessionInitListener>> sessionInitListenerClasses;
-    private Set<Class<? extends SessionDestroyListener>> sessionDestroyListenerClasses;
-    private Set<Class<? extends ServiceDestroyListener>> serviceDestroyListeners;
-    private Set<Class<? extends UI>> uiClasses;
-    private Set<Class<? extends View>> viewClasses;
-    private Set<Class<? extends ViewChangeListener>> viewChangeListenerClasses;
-    private Set<Class<? extends BootstrapListener>> bootStrapListenerClasses;
-    private Set<Class<? extends RequestHandler>> requestHandlerClasses;
-    private Set<Class<? extends VaadinServiceInitListener>> vaadinServiceInitListenerClasses;
+    private final Set<Class<? extends SessionInitListener>> sessionInitListenerClasses = new HashSet<>();
+    private final Set<Class<? extends SessionDestroyListener>> sessionDestroyListenerClasses = new HashSet<>();
+    private final Set<Class<? extends ServiceDestroyListener>> serviceDestroyListeners = new HashSet<>();
+    private final Set<Class<? extends UI>> uiClasses = new HashSet<>();
+    private final Set<Class<? extends RequestHandler>> requestHandlerClasses = new HashSet<>();
+    private final Set<Class<? extends VaadinServiceInitListener>> vaadinServiceInitListenerClasses = new HashSet<>();
+    private Class<? extends I18NProvider> i18NProviderClass;
+    private Module module;
 
     @Override
     public void init(ServletConfig servletConfig) throws ServletException {
@@ -125,26 +129,16 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
                 .map(annotation -> createModule(annotation.annotationType().getAnnotation(Import.class).value(), reflections, annotation))
                 .collect(toSet());
 
-        Set<Class<? extends Module>> modulesFromAnnotationClasses = modulesFromAnnotations
+        final Set<Module> modulesFromPath = filterTypes(reflections.getSubTypesOf(Module.class))
                 .stream()
-                .map(Module::getClass)
-                .collect(toSet());
-
-        final Set<Module> modulesFromPath = nonAbstractTypes(reflections.getSubTypesOf(Module.class))
-                .stream()
-                .filter(moduleClass -> !modulesFromAnnotationClasses.contains(moduleClass))
+                .filter(moduleClass -> !VaadinModule.class.equals(moduleClass))
                 .map(moduleClass -> createModule(moduleClass, reflections, null))
                 .collect(toSet());
-
-        Iterable<Module> allModules = concat(
-                modulesFromAnnotations,
-                modulesFromPath
-        );
 
         List<Module> nonOverrideModules = new ArrayList<>();
         List<Module> overrideModules = new ArrayList<>();
 
-        for (Module module : allModules) {
+        for (Module module : Iterables.concat(modulesFromAnnotations, modulesFromPath)) {
             if (module.getClass().isAnnotationPresent(OverrideBindings.class)) {
                 overrideModules.add(module);
             } else {
@@ -159,36 +153,29 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         */
         Module combinedModules = override(nonOverrideModules).with(overrideModules);
 
-        this.viewClasses = nonAbstractTypes(reflections.getSubTypesOf(View.class));
-        this.uiClasses = nonAbstractTypes(reflections.getSubTypesOf(UI.class));
-        this.bootStrapListenerClasses = nonAbstractTypes(reflections.getSubTypesOf(BootstrapListener.class));
-        this.vaadinServiceInitListenerClasses = nonAbstractTypes(reflections.getSubTypesOf(VaadinServiceInitListener.class));
-        this.requestHandlerClasses = nonAbstractTypes(reflections.getSubTypesOf(RequestHandler.class));
-        this.controllerClasses = nonAbstractTypes(reflections.getTypesAnnotatedWith(Controller.class));
-        this.sessionInitListenerClasses = nonAbstractTypes(reflections.getSubTypesOf(SessionInitListener.class))
-                .stream()
-                .filter(cls -> !VaadinServlet.class.isAssignableFrom(cls))
-                .collect(toSet());
+        this.uiClasses.addAll(filterTypes(reflections.getSubTypesOf(UI.class)));
+        this.vaadinServiceInitListenerClasses.addAll(filterTypes(reflections.getSubTypesOf(VaadinServiceInitListener.class)));
+        this.requestHandlerClasses.addAll(filterTypes(reflections.getSubTypesOf(RequestHandler.class)));
+        this.sessionInitListenerClasses.addAll(filterTypes(reflections.getSubTypesOf(SessionInitListener.class)));
+        this.sessionDestroyListenerClasses.addAll(filterTypes(reflections.getSubTypesOf(SessionDestroyListener.class)));
+        this.serviceDestroyListeners.addAll(filterTypes(reflections.getSubTypesOf(ServiceDestroyListener.class)));
 
-        this.sessionDestroyListenerClasses = nonAbstractTypes(reflections.getSubTypesOf(SessionDestroyListener.class));
-        this.serviceDestroyListeners = nonAbstractTypes(reflections.getSubTypesOf(ServiceDestroyListener.class));
-        this.uiScope = new UIScope();
-        this.viewScope = new ViewScope();
-        this.vaadinSessionScoper = new VaadinSessionScope();
-        this.viewProvider = new GuiceViewProvider(this);
-        this.guiceUIProvider = new GuiceUIProvider(this);
+        Set<Class<? extends I18NProvider>> i18NProviders = filterTypes(reflections.getSubTypesOf(I18NProvider.class));
 
-        this.viewChangeListenerClasses = nonAbstractTypes(reflections.getSubTypesOf(ViewChangeListener.class));
+        checkState(i18NProviders.size() < 2, "More than one I18NProvider found in Path: {}", i18NProviders.stream().map(Class::toGenericString).collect(joining(", ")));
 
-        //sets up the basic vaadin stuff like UISetup
-        VaadinModule vaadinModule = new VaadinModule(this);
+        if(!i18NProviders.isEmpty()){
+            this.i18NProviderClass = getOnlyElement(i18NProviders);
+        }
 
-        this.injector = createInjector(vaadinModule, combinedModules);
+        Module vaadinModule = new VaadinModule(this);
+
+        module = Modules.combine(vaadinModule, combinedModules);
 
         super.init(servletConfig);
     }
 
-    private <U> Set<Class<? extends U>> nonAbstractTypes(Set<Class<? extends U>> types) {
+    private <U> Set<Class<? extends U>> filterTypes(Set<Class<? extends U>> types) {
         return types
                 .stream()
                 .filter(t -> !isAbstract(t.getModifiers()))
@@ -199,45 +186,37 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
     protected void servletInitialized() {
         final VaadinService vaadinService = VaadinService.getCurrent();
 
-        vaadinService.addSessionInitListener(this);
+        this.injector = createInjector(module);
+
+        vaadinService.addSessionInitListener(this::sessionInit);
 
         sessionInitListenerClasses
                 .stream()
-                .map(getInjector()::getInstance)
+                .map(injector::getInstance)
                 .forEach(vaadinService::addSessionInitListener);
 
         sessionDestroyListenerClasses
                 .stream()
-                .map(getInjector()::getInstance)
+                .map(injector::getInstance)
                 .forEach(vaadinService::addSessionDestroyListener);
 
         serviceDestroyListeners
                 .stream()
-                .map(getInjector()::getInstance)
+                .map(injector::getInstance)
                 .forEach(vaadinService::addServiceDestroyListener);
     }
 
     @Override
     protected VaadinServletService createServletService(DeploymentConfiguration deploymentConfiguration) throws ServiceException {
-        return new GuiceVaadinServletService(this, deploymentConfiguration);
+        final GuiceVaadinServletService guiceVaadinServletService = new GuiceVaadinServletService(this, deploymentConfiguration);
+
+        guiceVaadinServletService.init();
+
+        return guiceVaadinServletService;
     }
 
-    @Override
-    public void sessionInit(SessionInitEvent event) {
+    private void sessionInit(SessionInitEvent event) {
         VaadinSession session = event.getSession();
-
-        // remove UIProvider instances to avoid mapping
-        // extraneous UIs if e.g. a servlet is declared as a nested
-        // class in a UI class
-        session.getUIProviders().forEach(session::removeUIProvider);
-
-        //set the GuiceUIProvider
-        session.addUIProvider(guiceUIProvider);
-
-        bootStrapListenerClasses
-                .stream()
-                .map(getInjector()::getInstance)
-                .forEach(session::addBootstrapListener);
 
         requestHandlerClasses
                 .stream()
@@ -245,28 +224,16 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
                 .forEach(session::addRequestHandler);
     }
 
-    GuiceViewProvider getViewProvider() {
-        return viewProvider;
-    }
-
-    GuiceUIProvider getGuiceUIProvider() {
-        return guiceUIProvider;
-    }
-
     UIScope getUiScope() {
         return uiScope;
-    }
-
-    Set<Class<? extends View>> getViewClasses() {
-        return viewClasses;
     }
 
     Set<Class<? extends UI>> getUiClasses() {
         return uiClasses;
     }
 
-    VaadinSessionScope getVaadinSessionScoper() {
-        return vaadinSessionScoper;
+    VaadinSessionScope getVaadinSessionScope() {
+        return vaadinSessionScope;
     }
 
     Iterator<VaadinServiceInitListener> getServiceInitListeners() {
@@ -276,51 +243,8 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
                 .iterator();
     }
 
-    Set<Class<? extends ViewChangeListener>> getViewChangeListeners(Class<? extends UI> uiClass) {
-        return viewChangeListenerCache.computeIfAbsent(uiClass, u -> getApplicable(u, viewChangeListenerClasses));
-    }
-
-    Set<Class<?>> getControllerClasses(Class<? extends UI> uiClass){
-        return controllerCache.computeIfAbsent(uiClass, uic -> getApplicableControllers(uic, controllerClasses));
-    }
-
-    Set<Class<?>> getControllerClasses() {
-        return controllerClasses;
-    }
-
-    private <T> Set<Class<? extends T>> getApplicableControllers(Class<? extends UI> uiClass, Set<Class<? extends T>> classes) {
-        return ImmutableSet.copyOf(
-                classes
-                        .stream()
-                        .filter(t -> t.getAnnotation(Controller.class).value().equals(uiClass))
-                        .iterator()
-        );
-    }
-
-    private <T> Set<Class<? extends T>> getApplicable(Class<? extends UI> uiClass, Set<Class<? extends T>> classes) {
-        return ImmutableSet.copyOf(
-                classes
-                        .stream()
-                        .filter(t -> appliesForUI(uiClass, t))
-                        .iterator()
-        );
-    }
-
-    boolean appliesForUI(Class<? extends UI> uiClass, Class<?> clazz) {
-
-        checkState(uiClasses.contains(uiClass), "ui class not registered: %s", uiClass);
-
-        final ForUI forUI = clazz.getAnnotation(ForUI.class);
-
-        if (forUI == null) {
-            return true;
-        }
-
-        final List<Class<? extends UI>> applicableUIs = asList(forUI.value());
-
-        checkArgument(!applicableUIs.isEmpty(), "@ForUI#value() must not be empty at %s", uiClass);
-
-        return applicableUIs.contains(uiClass);
+    Optional<Class<? extends I18NProvider>> getI18NProvider(){
+        return Optional.ofNullable(i18NProviderClass);
     }
 
     private Module createModule(Class<? extends Module> moduleClass, Reflections reflections, Annotation annotation) {
@@ -364,11 +288,27 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
         throw new IllegalStateException("no suitable constructor found for %s" + moduleClass);
     }
 
-    protected Injector getInjector() {
+    Injector getInjector() {
         return checkNotNull(injector, "injector is not set up yet");
     }
 
-    public ViewScope getViewScope() {
-        return viewScope;
+    /**
+     * An exception to be thrown when an error occurred during the creation of {@link Module}s.
+     */
+    private static class ModuleCreationException extends RuntimeException {
+        ModuleCreationException(Exception e){
+            super(e);
+        }
+    }
+
+    /**
+     * A {@link Provider} for the {@link Injector} which delegates to
+     * {@link GuiceVaadinServlet#getInjector()}.
+     */
+    private class InjectorProvider implements Provider<Injector> {
+        @Override
+        public Injector get() {
+            return getInjector();
+        }
     }
 }

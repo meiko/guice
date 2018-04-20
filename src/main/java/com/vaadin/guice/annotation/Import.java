@@ -1,12 +1,10 @@
 package com.vaadin.guice.annotation;
 
-import com.google.inject.Module;
+import com.google.inject.*;
+import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.RetentionPolicy.*;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
-import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import java.lang.annotation.*;
 
 /**
  * Marks an {@link java.lang.annotation.Annotation} as creator of a {@link Module}. The module needs

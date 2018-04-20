@@ -13,7 +13,10 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.vaadin.guice.testClasses;
+package com.vaadin.guice.server;
 
-public class Prototype1 {
+import com.vaadin.guice.annotation.PackagesToScan;
+
+@PackagesToScan("com.vaadin.guice")
+class TestServlet extends GuiceVaadinServlet{
 }
