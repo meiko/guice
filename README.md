@@ -8,7 +8,8 @@ Guice Vaadin is the official [Guice](https://github.com/google/guice) integratio
 ## setting up the servlet
 
 first step is to set up the GuiceVaadinServlet, which needs a packagesToScan parameter holding the 
-names of all packages that should be scanned for UIs, Views, ViewChangeListeners and VaadinServiceInitListeners. 
+names of all packages that should be scanned for UIs, Views, ViewChangeListeners, RequestHandler, VaadinServiceInitListeners
+and custom implementation of UildRequestHandler. 
 Sub-packages of these packages are scanned as well. 
 
 This can be done either by subclassing GuiceVaadinServlet and annotating it with @PackagesToScan, or by
@@ -79,7 +80,14 @@ public class MyUI extends com.vaadin.ui.UI {
 }
 ```
 
-Copyright 2015-2017 Vaadin Ltd.
+## Limitation - UildRequestHandler
+
+It's only possible to register one custom UildRequestHandler with Vaadin Guice. GuiceVaadinServlet throws an 
+IllegalStateException if more than on custom implementation of UildRequestHandler was found in packagesToScan.
+
+# Copyright
+
+Copyright 2015-2018 Vaadin Ltd.
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not
 use this file except in compliance with the License. You may obtain a copy of
