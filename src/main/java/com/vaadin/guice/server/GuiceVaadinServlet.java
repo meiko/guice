@@ -20,7 +20,6 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
 import com.google.inject.TypeLiteral;
-import com.google.inject.util.Modules;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.function.DeploymentConfiguration;
@@ -87,7 +86,6 @@ public class GuiceVaadinServlet extends VaadinServlet {
     private final Set<Class<? extends RequestHandler>> requestHandlerClasses = new HashSet<>();
     private final Set<Class<? extends VaadinServiceInitListener>> vaadinServiceInitListenerClasses = new HashSet<>();
     private Class<? extends I18NProvider> i18NProviderClass;
-    private Module module;
 
     @Override
     public void init(ServletConfig servletConfig) throws ServletException {
@@ -162,15 +160,17 @@ public class GuiceVaadinServlet extends VaadinServlet {
 
         Set<Class<? extends I18NProvider>> i18NProviders = filterTypes(reflections.getSubTypesOf(I18NProvider.class));
 
-        checkState(i18NProviders.size() < 2, "More than one I18NProvider found in Path: {}", i18NProviders.stream().map(Class::toGenericString).collect(joining(", ")));
+        checkState(
+            i18NProviders.size() < 2,
+            "More than one I18NProvider found in Path: {}",
+            i18NProviders.stream().map(Class::toGenericString).collect(joining(", "))
+        );
 
         if(!i18NProviders.isEmpty()){
             this.i18NProviderClass = getOnlyElement(i18NProviders);
         }
 
-        Module vaadinModule = new VaadinModule(this);
-
-        module = Modules.combine(vaadinModule, combinedModules);
+        this.injector = createInjector(new VaadinModule(this), combinedModules);
 
         super.init(servletConfig);
     }
@@ -185,8 +185,6 @@ public class GuiceVaadinServlet extends VaadinServlet {
     @Override
     protected void servletInitialized() {
         final VaadinService vaadinService = VaadinService.getCurrent();
-
-        this.injector = createInjector(module);
 
         vaadinService.addSessionInitListener(this::sessionInit);
 

@@ -37,5 +37,4 @@ class VaadinModule extends AbstractModule {
         bindScope(UIScope.class, guiceVaadinServlet.getUiScope());
         bindScope(VaadinSessionScope.class, guiceVaadinServlet.getVaadinSessionScope());
     }
-
 }
