@@ -58,10 +58,18 @@ class GuiceInstantiator extends DefaultInstantiator {
         return Stream.concat(super.getServiceInitListeners(), guiceListeners);
     }
 
+    private Boolean i18NProviderBound;
+    
+    private boolean isI18NProviderBound(){
+        if(i18NProviderBound == null){
+           i18NProviderBound = servlet.getInjector().getExistingBinding(i18NProviderKey) != null;
+        }
+        
+        return i18NProviderBound;
+    }
+    
     @Override
     public I18NProvider getI18NProvider() {
-        final boolean bindingExists = servlet.getInjector().getExistingBinding(i18NProviderKey) != null;
-
-        return bindingExists ? getOrCreate(I18NProvider.class) : null;
+        return isI18NProviderBound() ? getOrCreate(I18NProvider.class) : null;
     }
 }
