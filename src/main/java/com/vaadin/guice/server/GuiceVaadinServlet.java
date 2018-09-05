@@ -172,10 +172,15 @@ public class GuiceVaadinServlet extends VaadinServlet implements SessionInitList
                 .filter(cls -> !VaadinServlet.class.isAssignableFrom(cls))
                 .collect(toSet());
 
-        this.customUidlRequestHandlerClass = nonAbstractTypes(reflections.getSubTypesOf(UidlRequestHandler.class))
-                .stream()
-                .filter(cls -> !VaadinServlet.class.isAssignableFrom(cls))
-                .findFirst().orElse(null);
+        List<Class<? extends UidlRequestHandler>> customUildRequestHandlers =
+                new ArrayList<>(nonAbstractTypes(reflections.getSubTypesOf(UidlRequestHandler.class)));
+
+        if (1 == customUildRequestHandlers.size()) {
+            this.customUidlRequestHandlerClass = customUildRequestHandlers.get(0);
+        } else if (1 < customUildRequestHandlers.size()) {
+            throw new IllegalStateException(String.format("Vaadin Guice can only register one custom implementation of " +
+                    "UildRequestHandler. Scanning the given packagesToScan returned '%s' classes.", customUildRequestHandlers.size()));
+        }
 
         this.sessionDestroyListenerClasses = nonAbstractTypes(reflections.getSubTypesOf(SessionDestroyListener.class));
         this.serviceDestroyListeners = nonAbstractTypes(reflections.getSubTypesOf(ServiceDestroyListener.class));
