@@ -19,7 +19,6 @@ import com.google.common.collect.Iterables;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
-import com.google.inject.TypeLiteral;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.function.DeploymentConfiguration;
@@ -44,6 +43,7 @@ import org.reflections.Reflections;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -72,9 +72,6 @@ import static java.util.stream.Collectors.toSet;
  */
 @SuppressWarnings("unused")
 public class GuiceVaadinServlet extends VaadinServlet {
-
-    private static final Class<? super Provider<Injector>> injectorProviderType = new TypeLiteral<Provider<Injector>>() {
-    }.getRawType();
 
     private final UIScope uiScope = new UIScope();
     private final VaadinSessionScope vaadinSessionScope = new VaadinSessionScope();
@@ -260,7 +257,10 @@ public class GuiceVaadinServlet extends VaadinServlet {
 
                 if (Reflections.class.equals(parameterType)) {
                     initArgs[i] = reflections;
-                } else if (injectorProviderType.equals(parameterType)) {
+                } else if (
+                    Provider.class.isAssignableFrom(parameterType) &&
+                    ((ParameterizedType) parameterType.getGenericSuperclass()).getActualTypeArguments()[0].equals(Injector.class)
+                ) {
                     initArgs[i] = (Provider<Injector>) this::getInjector;
                 } else if (annotation != null && annotation.annotationType().equals(parameterType)) {
                     initArgs[i] = annotation;
