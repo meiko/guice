@@ -184,6 +184,8 @@ public class GuiceVaadinServlet extends VaadinServlet {
         final VaadinService vaadinService = VaadinService.getCurrent();
 
         vaadinService.addSessionInitListener(this::sessionInit);
+        vaadinService.addSessionDestroyListener(uiScope);
+        vaadinService.addSessionDestroyListener(vaadinSessionScope);
 
         sessionInitListenerClasses
                 .stream()

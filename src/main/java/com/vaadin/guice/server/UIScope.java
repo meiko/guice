@@ -19,6 +19,8 @@ import com.google.inject.Key;
 import com.google.inject.Provider;
 import com.google.inject.Scope;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.server.SessionDestroyEvent;
+import com.vaadin.flow.server.SessionDestroyListener;
 import com.vaadin.flow.server.VaadinSession;
 
 import java.io.Serializable;
@@ -28,7 +30,7 @@ import java.util.WeakHashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-class UIScope implements Scope, Serializable {
+class UIScope implements Scope, Serializable, SessionDestroyListener {
 
     private final transient Map<VaadinSession, Map<UI, Map<Key<?>, Object>>> scopesBySession;
 
@@ -41,6 +43,7 @@ class UIScope implements Scope, Serializable {
     @SuppressWarnings("unchecked")
     public <T> Provider<T> scope(Key<T> key, Provider<T> provider) {
         return () -> {
+
             final VaadinSession vaadinSession = checkNotNull(
                 VaadinSession.getCurrent(),
                 "VaadinSession is not set up yet."
@@ -51,11 +54,22 @@ class UIScope implements Scope, Serializable {
                 "current UI is not set up yet"
             );
 
-            Map<UI, Map<Key<?>, Object>> uisToScopedObjects = scopesBySession.computeIfAbsent(vaadinSession, session -> new WeakHashMap<>());
+            Map<UI, Map<Key<?>, Object>> uisToScopedObjects;
+
+            synchronized (this){
+                uisToScopedObjects = scopesBySession.computeIfAbsent(vaadinSession, session -> new WeakHashMap<>());
+            }
 
             final Map<Key<?>, Object> scopedObjects = uisToScopedObjects.computeIfAbsent(currentUI, ui -> new HashMap<>());
 
             return (T) scopedObjects.computeIfAbsent(key, k -> provider.get());
         };
+    }
+
+    @Override
+    public void sessionDestroy(SessionDestroyEvent event) {
+        synchronized (this){
+            scopesBySession.remove(event.getSession());
+        }
     }
 }

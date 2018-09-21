@@ -18,6 +18,9 @@ package com.vaadin.guice.server;
 import com.google.inject.Key;
 import com.google.inject.Provider;
 import com.google.inject.Scope;
+
+import com.vaadin.flow.server.SessionDestroyEvent;
+import com.vaadin.flow.server.SessionDestroyListener;
 import com.vaadin.flow.server.VaadinSession;
 
 import java.io.Serializable;
@@ -27,7 +30,7 @@ import java.util.WeakHashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-class VaadinSessionScope implements Scope, Serializable {
+class VaadinSessionScope implements Scope, Serializable, SessionDestroyListener {
 
     private final transient Map<VaadinSession, Map<Key<?>, Object>> scopeMapsBySession;
 
@@ -42,9 +45,20 @@ class VaadinSessionScope implements Scope, Serializable {
         return () -> {
             final VaadinSession vaadinSession = checkNotNull(VaadinSession.getCurrent());
 
-            final Map<Key<?>, Object> scopeMap = scopeMapsBySession.computeIfAbsent(vaadinSession, v -> new HashMap<>());
+            final Map<Key<?>, Object> scopeMap;
+
+            synchronized (this) {
+                scopeMap = scopeMapsBySession.computeIfAbsent(vaadinSession, v -> new HashMap<>());
+            }
 
             return (T) scopeMap.computeIfAbsent(key, k -> provider.get());
         };
+    }
+
+    @Override
+    public void sessionDestroy(SessionDestroyEvent event) {
+        synchronized (this) {
+            scopeMapsBySession.remove(event.getSession());
+        }
     }
 }
