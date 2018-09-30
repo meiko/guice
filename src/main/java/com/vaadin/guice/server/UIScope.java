@@ -18,6 +18,7 @@ package com.vaadin.guice.server;
 import com.google.inject.Key;
 import com.google.inject.Provider;
 import com.google.inject.Scope;
+
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.server.SessionDestroyEvent;
 import com.vaadin.flow.server.SessionDestroyListener;
@@ -29,6 +30,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Collections.synchronizedMap;
 
 class UIScope implements Scope, Serializable, SessionDestroyListener {
 
@@ -36,7 +38,7 @@ class UIScope implements Scope, Serializable, SessionDestroyListener {
 
     @SuppressWarnings("WeakerAccess")
     public UIScope(){
-        scopesBySession = new WeakHashMap<>();
+        scopesBySession = synchronizedMap(new HashMap<>());
     }
 
     @Override
@@ -54,11 +56,7 @@ class UIScope implements Scope, Serializable, SessionDestroyListener {
                 "current UI is not set up yet"
             );
 
-            Map<UI, Map<Key<?>, Object>> uisToScopedObjects;
-
-            synchronized (this){
-                uisToScopedObjects = scopesBySession.computeIfAbsent(vaadinSession, session -> new WeakHashMap<>());
-            }
+            Map<UI, Map<Key<?>, Object>> uisToScopedObjects = scopesBySession.computeIfAbsent(vaadinSession, session -> new WeakHashMap<>());
 
             final Map<Key<?>, Object> scopedObjects = uisToScopedObjects.computeIfAbsent(currentUI, ui -> new HashMap<>());
 
@@ -68,8 +66,6 @@ class UIScope implements Scope, Serializable, SessionDestroyListener {
 
     @Override
     public void sessionDestroy(SessionDestroyEvent event) {
-        synchronized (this){
-            scopesBySession.remove(event.getSession());
-        }
+        scopesBySession.remove(event.getSession());
     }
 }
