@@ -60,8 +60,8 @@ class UIScope implements Scope, Serializable, SessionDestroyListener {
                 );
 
                 return (T) scopesBySession
-                    .computeIfAbsent(vaadinSession, session -> new WeakHashMap<>())
-                    .computeIfAbsent(currentUI, ui -> new HashMap<>())
+                    .computeIfAbsent(vaadinSession, session -> new HashMap<>())
+                    .computeIfAbsent(currentUI, ui -> new WeakHashMap<>())
                     .computeIfAbsent(key, k -> provider.get());
             } finally {
                 vaadinSession.unlock();

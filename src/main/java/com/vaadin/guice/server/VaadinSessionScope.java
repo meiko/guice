@@ -36,7 +36,7 @@ class VaadinSessionScope implements Scope, Serializable, SessionDestroyListener 
 
     @SuppressWarnings("WeakerAccess")
     public VaadinSessionScope(){
-         scopeMapsBySession = Collections.synchronizedMap(new HashMap<>());
+        scopeMapsBySession = Collections.synchronizedMap(new HashMap<>());
     }
 
     @Override
@@ -59,8 +59,6 @@ class VaadinSessionScope implements Scope, Serializable, SessionDestroyListener 
 
     @Override
     public void sessionDestroy(SessionDestroyEvent event) {
-        synchronized (event.getSession()) {
             scopeMapsBySession.remove(event.getSession());
-        }
     }
 }
