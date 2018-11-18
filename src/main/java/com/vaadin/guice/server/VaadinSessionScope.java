@@ -45,10 +45,14 @@ class VaadinSessionScope implements Scope, Serializable, SessionDestroyListener 
         return () -> {
             final VaadinSession vaadinSession = checkNotNull(VaadinSession.getCurrent());
 
-            synchronized (vaadinSession) {
-                final Map<Key<?>, Object> scopeMap = scopeMapsBySession.computeIfAbsent(vaadinSession, v -> new HashMap<>());
+            vaadinSession.lock();
 
-                return (T) scopeMap.computeIfAbsent(key, k -> provider.get());
+            try {
+                return (T) scopeMapsBySession
+                    .computeIfAbsent(vaadinSession, v -> new HashMap<>())
+                    .computeIfAbsent(key, k -> provider.get());
+            } finally {
+                vaadinSession.unlock();
             }
         };
     }

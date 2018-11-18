@@ -51,17 +51,20 @@ class UIScope implements Scope, Serializable, SessionDestroyListener {
                 "VaadinSession is not set up yet."
             );
 
-            synchronized (vaadinSession) {
+            vaadinSession.lock();
+
+            try {
                 final UI currentUI = checkNotNull(
-                        UI.getCurrent(),
-                        "current UI is not set up yet"
+                    UI.getCurrent(),
+                    "current UI is not set up yet"
                 );
 
-                Map<UI, Map<Key<?>, Object>> uisToScopedObjects = scopesBySession.computeIfAbsent(vaadinSession, session -> new WeakHashMap<>());
-
-                final Map<Key<?>, Object> scopedObjects = uisToScopedObjects.computeIfAbsent(currentUI, ui -> new HashMap<>());
-
-                return (T) scopedObjects.computeIfAbsent(key, k -> provider.get());
+                return (T) scopesBySession
+                    .computeIfAbsent(vaadinSession, session -> new WeakHashMap<>())
+                    .computeIfAbsent(currentUI, ui -> new HashMap<>())
+                    .computeIfAbsent(key, k -> provider.get());
+            } finally {
+                vaadinSession.unlock();
             }
         };
     }
