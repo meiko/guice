@@ -33,8 +33,14 @@ class UIScope implements Scope {
             Map<UI, Map<Key<?>, Object>> uisToScopedObjects = scopesBySession.computeIfAbsent(vaadinSession, session -> new WeakHashMap<>());
 
             final Map<Key<?>, Object> scopedObjects = getScopedObjects(uisToScopedObjects);
-
-            return (T) scopedObjects.computeIfAbsent(key, k -> provider.get());
+            
+            if(scopedObjects.containsValue(key)) {
+                return (T) scopedObjects.get(key);
+            }
+            
+            T result = provider.get();
+            scopedObjects.put(key, result);
+            return result;
         };
     }
 
